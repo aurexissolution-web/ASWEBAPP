@@ -67,7 +67,7 @@ const AppRoutes: React.FC<{ darkMode: boolean; toggleDarkMode: () => void }> = (
       const stored = window.localStorage.getItem(EMAIL_MODAL_STORAGE_KEY);
       const hasOpted = Boolean(stored);
       if (!hasOpted) {
-        timeoutId = setTimeout(() => setShowEmailModal(true), 6000);
+        timeoutId = setTimeout(() => setShowEmailModal(true), 2500);
       }
     }
 
