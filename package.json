@@ -1,0 +1,35 @@
+{
+  "name": "aurexis-solution",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "predev": "node ./scripts/bootstrap-env.mjs",
+    "dev": "vite",
+    "prebuild": "node ./scripts/bootstrap-env.mjs",
+    "build": "vite build",
+    "prepreview": "node ./scripts/bootstrap-env.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "firebase": "^12.7.0",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.555.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.6",
+    "recharts": "^3.5.0",
+    "swiper": "^12.0.3",
+    "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.47",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^3.4.15",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}
