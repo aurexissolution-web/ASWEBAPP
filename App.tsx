@@ -62,18 +62,15 @@ const AppRoutes: React.FC<{ darkMode: boolean; toggleDarkMode: () => void }> = (
       return;
     }
 
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     if (typeof window !== 'undefined') {
       const stored = window.localStorage.getItem(EMAIL_MODAL_STORAGE_KEY);
       const hasOpted = Boolean(stored);
       if (!hasOpted) {
-        timeoutId = setTimeout(() => setShowEmailModal(true), 2500);
+        setShowEmailModal(true);
       }
     }
 
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
+    return undefined;
   }, [modalEligible, location.pathname]);
 
   const handleModalDismiss = (result: 'dismissed' | 'subscribed') => {
