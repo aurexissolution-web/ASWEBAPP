@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, ShieldCheck, Mail } from 'lucide-react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { signInAnonymously } from 'firebase/auth';
-import { auth, db } from '../src/firebase';
+import { db } from '../src/firebase';
 
 interface EmailCaptureModalProps {
   isOpen: boolean;
@@ -39,10 +38,6 @@ const EmailCaptureModal: React.FC<EmailCaptureModalProps> = ({ isOpen, onDismiss
     setError('');
 
     try {
-      if (auth && !auth.currentUser) {
-        await signInAnonymously(auth);
-      }
-
       if (db) {
         await addDoc(collection(db, 'newsletterLeads'), {
           email: email.trim().toLowerCase(),

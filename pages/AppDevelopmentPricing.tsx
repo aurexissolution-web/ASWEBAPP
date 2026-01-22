@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { animate, motion, useInView } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
+import { useData } from '../context/DataContext';
+import { DEFAULT_PRICING_PAGE_CONTENT } from '../constants';
+import type { PricingPlan } from '../types';
 import {
   Sparkles,
   Shield,
@@ -19,31 +22,18 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
-type PricingTierCard = {
-  name: string;
-  priceLabel: string;
-  priceValue: number;
-  priceSuffix?: string;
-  description: string;
-  bullets: string[];
-  cta: string;
-  gradientLight: string;
-  gradientDark: string;
-  recommended?: boolean;
-};
-
-const tierData: PricingTierCard[] = [
+const FALLBACK_PLANS: PricingPlan[] = [
   {
+    id: 'launch',
     name: 'Launch Pad',
     priceLabel: 'RM 4,999',
     priceValue: 4999,
     description: 'Deploy app in 30 days with Malaysian sprint pods.',
     bullets: ['React Native MVP', 'Firebase auth & backend', 'CI/CD pipelines', 'Shopee API starter', 'WhatsApp notifications'],
-    cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
-    gradientLight: 'from-white via-emerald-50 to-cyan-50',
-    gradientDark: 'dark:from-[#032420] dark:via-[#072c3a] dark:to-[#020f1a]'
+    cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01'
   },
   {
+    id: 'growth',
     name: 'Growth Ops',
     priceLabel: 'RM 8,000',
     priceValue: 8000,
@@ -56,21 +46,24 @@ const tierData: PricingTierCard[] = [
       'Push notifications & Crashlytics'
     ],
     cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
-    recommended: true,
-    gradientLight: 'from-white via-violet-50 to-indigo-50',
-    gradientDark: 'dark:from-[#1a1036] dark:via-[#221148] dark:to-[#090717]'
+    recommended: true
   },
   {
+    id: 'enterprise',
     name: 'Enterprise Velocity',
     priceLabel: 'RM 15,000',
     priceValue: 15000,
     priceSuffix: '+',
     description: 'Custom integrations and enterprise scaling guardrails.',
     bullets: ['PWAs + native hybrids', 'Custom APIs (HubSpot/CRM/ERP)', 'Enterprise auth (SSO)', 'Private cloud deploys', 'SOC2 audits'],
-    cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
-    gradientLight: 'from-white via-amber-50 to-rose-50',
-    gradientDark: 'dark:from-[#2e0d15] dark:via-[#3c151d] dark:to-[#140407]'
+    cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01'
   }
+];
+
+const PLAN_GRADIENTS = [
+  { light: 'from-white via-emerald-50 to-cyan-50', dark: 'dark:from-[#032420] dark:via-[#072c3a] dark:to-[#020f1a]' },
+  { light: 'from-white via-violet-50 to-indigo-50', dark: 'dark:from-[#1a1036] dark:via-[#221148] dark:to-[#090717]' },
+  { light: 'from-white via-amber-50 to-rose-50', dark: 'dark:from-[#2e0d15] dark:via-[#3c151d] dark:to-[#140407]' }
 ];
 
 type HeroMetric = {
@@ -287,9 +280,15 @@ const orbVariants = {
 };
 
 const AppDevelopmentPricing: React.FC = () => {
+  const { pricingPages } = useData();
+  const pageContent = pricingPages?.app || DEFAULT_PRICING_PAGE_CONTENT.app;
+  const pricingTiersSource = pageContent.plans;
+  const pricingTiers: PricingPlan[] = pricingTiersSource && pricingTiersSource.length ? pricingTiersSource : FALLBACK_PLANS;
+
   const [dailyLeads, setDailyLeads] = useState(80);
   const [avgDeal, setAvgDeal] = useState(2200);
   const [hoursSaved, setHoursSaved] = useState(55);
+  const [activePlan, setActivePlan] = useState(1);
 
   const projections = useMemo(() => {
     const manualRevenue = dailyLeads * 26 * avgDeal * 0.18;
@@ -430,23 +429,7 @@ const AppDevelopmentPricing: React.FC = () => {
           </motion.div>
         </section>
 
-        {/* Metrics */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {metrics.map((metric) => (
-            <motion.div
-              key={metric.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={`rounded-[32px] p-5 border text-center font-bold shadow-[0_20px_60px_rgba(236,72,153,0.2)] bg-gradient-to-br ${metric.lightGradient} text-slate-900 border-slate-200 dark:border-white/15 dark:bg-gradient-to-br dark:${metric.darkGradient} dark:text-white`}
-            >
-              <p className="text-xs uppercase tracking-[0.4em] text-slate-600 dark:text-white/70">{metric.label}</p>
-              <p className="text-3xl mt-2 text-slate-900 dark:text-white">{metric.value}</p>
-            </motion.div>
-          ))}
-        </section>
-
-        {/* Pricing cards */}
+        {/* Pricing */}
         <section className="space-y-8">
           <div className="text-center space-y-4">
             <p className="text-xs uppercase tracking-[0.5em] text-rose-600 dark:text-emerald-200">Transparent pricing</p>
@@ -467,126 +450,102 @@ const AppDevelopmentPricing: React.FC = () => {
             }}
             className="grid gap-8 lg:grid-cols-3"
           >
-            {tierData.map((tier, index) => (
-              <motion.article
-                key={tier.name}
-                variants={{
-                  hidden: { opacity: 0, y: 40 },
-                  visible: { opacity: 1, y: 0 }
-                }}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: 'spring', duration: 0.6 }}
-                className={`relative rounded-[38px] border p-8 flex flex-col gap-6 shadow_[0_35px_120px_rgba(236,72,153,0.25)] backdrop-blur-xl group bg-gradient-to-br ${tier.gradientLight} text-slate-900 border-slate-200 dark:border-white/10 dark:bg-gradient-to-br ${tier.gradientDark} dark:text-white`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.45em] text-slate-500 dark:text-white/70">{tier.name}</p>
-                    <AnimatedPrice amount={tier.priceValue} suffix={tier.priceSuffix} index={index} />
-                  </div>
-                  {tier.recommended && (
-                    <span className="px-3 py-1 rounded-full border border-rose-200 bg-white/70 text-[10px] uppercase tracking-[0.35em] text-rose-600 dark:border-white/20 dark:bg-white/20 dark:text-white">
-                      Most picked
-                    </span>
-                  )}
-                </div>
-                <p className="text-slate-600 text-base leading-relaxed dark:text-white/80">{tier.description}</p>
-                <ul className="space-y-3 text-sm text-slate-700 dark:text-white/85">
-                  {tier.bullets.map((bullet) => (
-                    <motion.li
-                      key={bullet}
-                      whileHover={{ x: 6, opacity: 1 }}
-                      initial={{ opacity: 0.95 }}
-                      transition={{ duration: 0.25 }}
-                      className="flex items-center gap-3"
-                    >
-                      <span className="h-8 w-8 rounded-2xl bg-white border border-emerald-100 flex items-center justify-center text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover:bg-emerald-50 transition dark:bg-white/15 dark:border-white/20 dark:text-emerald-200">
-                        <CheckCircle2 size={16} />
-                      </span>
-                      <span className="text-slate-800 dark:text-white/90">{bullet}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-                <a
-                  href="https://calendly.com/admin-aurexissolution/30min?month=2026-01"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-auto inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-400 text-slate-900 font-semibold shadow-[0_15px_45px_rgba(6,182,212,0.55)] hover:translate-y-[-2px] transition-transform"
-                >
-                  Book This Plan <ChevronRight size={18} />
-                </a>
-              </motion.article>
-            ))}
-          </motion.div>
-        </section>
+            {pricingTiers.map((tier, index) => {
+              const gradients = PLAN_GRADIENTS[index % PLAN_GRADIENTS.length];
+              const priceDisplay = tier.priceLabel || (tier.priceValue ? `RM ${tier.priceValue.toLocaleString()}` : '');
+              const priceSuffix = tier.priceSuffix ?? '';
+              const tags = tier.tags ?? [];
 
-        {/* ROI */}
-        <section className="space-y-10">
-          <div className="space-y-3 max-w-3xl">
-            <p className="text-xs uppercase tracking-[0.5em] text-rose-500 dark:text-white/60">Your revenue lift</p>
-            <h2 className="text-4xl font-black text-slate-900 dark:text-white">Interactive ROI calculator</h2>
-          </div>
-          <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="space-y-6 rounded-[36px] border border-slate-200 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-white/5">
-              {[
-                { label: 'Daily leads', value: dailyLeads, display: dailyLeads, setter: setDailyLeads, min: 20, max: 240, step: 5 },
-                { label: 'Avg deal size (RM)', value: avgDeal, display: `RM ${avgDeal.toLocaleString()}`, setter: setAvgDeal, min: 800, max: 6000, step: 100 },
-                { label: 'Hours saved / week', value: hoursSaved, display: `${hoursSaved} hrs`, setter: setHoursSaved, min: 10, max: 150, step: 5 }
-              ].map((slider) => (
-                <div key={slider.label} className="space-y-2">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-white/60">
-                    <span>{slider.label}</span>
-                    <span className="text-slate-700 dark:text-white/80">{slider.display}</span>
+              return (
+                <motion.article
+                  key={tier.id ?? tier.name}
+                  variants={{
+                    hidden: { opacity: 0, y: 40 },
+                    visible: { opacity: 1, y: 0 }
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: 'spring', duration: 0.6 }}
+                  className={`relative rounded-[38px] border p-8 flex flex-col gap-6 shadow_[0_35px_120px_rgba(236,72,153,0.25)] backdrop-blur-xl group bg-gradient-to-br ${gradients.light} text-slate-900 border-slate-200 dark:border-white/10 dark:bg-gradient-to-br ${gradients.dark} dark:text-white ${
+                    tier.recommended ? 'ring-2 ring-rose-300/60 dark:ring-cyan-400/60 shadow-2xl shadow-rose-500/20 dark:shadow-cyan-500/20' : ''
+                  }`}
+                  onMouseEnter={() => setActivePlan(index)}
+                  onFocus={() => setActivePlan(index)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking_[0.45em] text-slate-500 dark:text-white/70">{tier.signal ?? tier.bestFor ?? tier.name}</p>
+                      <AnimatedPrice amount={tier.priceValue ?? 0} suffix={priceSuffix} index={index} />
+                      <p className="text-xs uppercase tracking_[0.45em] text-slate-500 dark:text-white/60 mt-2">per month</p>
+                    </div>
+                    {tier.recommended && (
+                      <span className="px-3 py-1 rounded-full border border-rose-200 bg-white/70 text-[10px] uppercase tracking_[0.35em] text-rose-600 dark:border-white/20 dark:bg-white/20 dark:text-white">
+                        Most picked
+                      </span>
+                    )}
                   </div>
-                  <input type="range" min={slider.min} max={slider.max} step={slider.step} value={slider.value} onChange={(e) => slider.setter(Number(e.target.value))} className={sliderClass} />
-                </div>
-              ))}
-              <div className="flex flex-wrap gap-4">
-                <a
-                  href="https://stripe.com/payments"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-6 py-3 rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 text-slate-900 font-semibold"
-                >
-                  Download Report
-                </a>
-                <a
-                  href="https://calendly.com/aurexis/ROI"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-6 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold dark:border-white/30 dark:text-white"
-                >
-                  Schedule ROI Call
-                </a>
-              </div>
-            </div>
-            <div className="space-y-6 rounded-[36px] border border-slate-200 bg-rose-50 p-8 text-slate-800 shadow-lg dark:border-white/10 dark:bg-black/30 dark:text-white/80">
-              <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-rose-500 dark:text-white/60">Monthly revenue with AI</p>
-                <p className="text-4xl font-black text-rose-600 dark:text-cyan-100 mt-2">RM {Math.round(projections.automationRevenue).toLocaleString()}</p>
-                <p className="text-emerald-600 font-semibold dark:text-emerald-300">+RM {Math.round(projections.lift).toLocaleString()} lift</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="rounded-2xl bg-white p-4 text-slate-700 shadow dark:bg-white/5 dark:text-white/80">
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Manual revenue</p>
-                  <p className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">RM {Math.round(projections.manualRevenue).toLocaleString()}</p>
-                </div>
-                <div className="rounded-2xl bg-white p-4 text-slate-700 shadow dark:bg-white/5 dark:text-white/80">
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Projected ROI</p>
-                  <p className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">{Math.max(0, projections.roi).toFixed(0)}%</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="rounded-2xl bg-white p-4 text-slate-700 shadow dark:bg-white/5 dark:text-white/80">
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Monthly leads</p>
-                  <p className="text-xl font-semibold mt-2 text-slate-900 dark:text-white">{(dailyLeads * 26).toLocaleString()}</p>
-                </div>
-                <div className="rounded-2xl bg-white p-4 text-slate-700 shadow dark:bg-white/5 dark:text-white/80">
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Hours saved</p>
-                  <p className="text-xl font-semibold mt-2 text-slate-900 dark:text-white">{hoursSaved} hrs/week</p>
-                </div>
-              </div>
-            </div>
-          </div>
+                  <p className="text-slate-600 text-base leading-relaxed dark:text-white/80">{tier.description}</p>
+                  <ul className="space-y-3 text-sm text-slate-700 dark:text-white/85">
+                    {(tier.bullets ?? []).map((bullet) => (
+                      <motion.li
+                        key={bullet}
+                        whileHover={{ x: 6, opacity: 1 }}
+                        initial={{ opacity: 0.95 }}
+                        transition={{ duration: 0.25 }}
+                        className="flex items-center gap-3"
+                      >
+                        <span className="h-8 w-8 rounded-2xl bg-white border border-emerald-100 flex items-center justify-center text-emerald-500 shadow_[0_0_20px_rgba(16,185,129,0.2)] group-hover:bg-emerald-50 transition dark:bg-white/15 dark:border-white/20 dark:text-emerald-200">
+                          <CheckCircle2 size={16} />
+                        </span>
+                        <span className="text-slate-800 dark:text-white/90">{bullet}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking_[0.35em] text-slate-500 dark:text-white/60">
+                      {tags.map((chip) => (
+                        <span
+                          key={`${tier.id ?? tier.name}-${chip}`}
+                          className={`px-3 py-1 rounded-full border ${tier.recommended ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-white/40 dark:bg-white/15 dark:text-white' : 'border-slate-200 text-slate-500 dark:border-white/15 dark:text-white/70'}`}
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <a
+                    href={tier.cta || 'https://calendly.com/admin-aurexissolution/30min?month=2026-01'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-auto inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-400 text-slate-900 font-semibold shadow_[0_15px_45px_rgba(6,182,212,0.55)] hover:translate-y-[-2px] transition-transform"
+                  >
+                    Book This Plan <ChevronRight size={18} />
+                  </a>
+                </motion.article>
+              );
+            })}
+          </motion.div>
+          <motion.div
+            key={activePlan}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded_[28px] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-lg dark:border-white/10 dark:bg-white/5 dark:text-white/80"
+          >
+            {(() => {
+              const resolvedIndex = Math.min(activePlan, pricingTiers.length - 1);
+              const activePlanData = pricingTiers[resolvedIndex];
+              return (
+                <>
+                  <p className="text-xs uppercase tracking_[0.45em] text-slate-500 dark:text-white/60">Plan intel</p>
+                  <p className="text-lg font-semibold mt-2">{activePlanData?.name}</p>
+                  <p className="mt-2">{activePlanData?.description}</p>
+                  <p className="mt-4 text-xs uppercase tracking_[0.45em] text-slate-500 dark:text-white/60">Best when you need</p>
+                  <p className="mt-1">
+                    {activePlanData?.bestFor ?? 'Founder-led pods with Malaysian timezone support.'}
+                  </p>
+                </>
+              );
+            })()}
+          </motion.div>
         </section>
 
         {/* FAQ */}

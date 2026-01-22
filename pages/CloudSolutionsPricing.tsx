@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useInView, animate } from 'framer-motion';
+import { useData } from '../context/DataContext';
+import { DEFAULT_PRICING_PAGE_CONTENT } from '../constants';
+import type { PricingPlan, PricingMetricBubble, PricingFaqItem } from '../types';
 import {
   Sparkles,
   Shield,
@@ -17,7 +20,9 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
-const heroBadges = ['AWS landing zones', 'GCP pods', 'Firebase managed', 'Shopee connectors', 'Zero-trust guardrails'];
+const BOOKING_LINK = 'https://calendly.com/admin-aurexissolution/30min?month=2026-01';
+
+const HERO_BADGES_FALLBACK = ['AWS landing zones', 'GCP pods', 'Firebase managed', 'Shopee connectors', 'Zero-trust guardrails'];
 
 const cloudInsights = [
   {
@@ -43,7 +48,14 @@ const cloudFacts = [
   'HubSpot ↔ Shopee connectors must keep audit logs for 90 days to satisfy PDPA breach rules.'
 ];
 
-const heroMetrics = [
+type HeroMetricCard = {
+  label?: string;
+  sub?: string;
+  target?: number;
+  formatter?: (value: number) => string;
+};
+
+const HERO_METRICS_FALLBACK: HeroMetricCard[] = [
   { label: 'RM12k/mo', sub: 'Cloud pod retainer', target: 12, formatter: (value: number) => `RM ${Math.round(value)}k/mo` },
   { label: '98.9% Uptime', sub: 'Managed SLOs', target: 98.9, formatter: (value: number) => `${value.toFixed(1)}% uptime` },
   { label: '40+ Blueprints', sub: 'AWS • GCP • Firebase', target: 40, formatter: (value: number) => `${Math.round(value)}+ blueprints` },
@@ -76,55 +88,73 @@ const featureCards = [
   }
 ];
 
-const pricingTiers = [
+const FALLBACK_PLANS: PricingPlan[] = [
   {
+    id: 'launch',
     name: 'Launch Pad',
-    price: 4999,
+    priceLabel: 'RM 4,999',
+    priceValue: 4999,
     description: 'Deploy cloud in 30 days with Malaysian pods and live dashboards.',
     bullets: ['AWS / GCP basics', 'Firebase scaling kits', 'CI/CD pipelines', 'Basic monitoring', 'Malaysian edge zones'],
-    cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
-    signal: 'Best for MVPs'
+    cta: BOOKING_LINK,
+    signal: 'Best for MVPs',
+    tags: ['Switch anytime', 'Local support', 'Weekly reports']
   },
   {
+    id: 'growth',
     name: 'Growth Ops',
-    price: 8000,
+    priceLabel: 'RM 8,000',
+    priceValue: 8000,
     description: 'Multi-cloud orchestration plus analytics, FinOps, and compliance.',
     bullets: ['Hybrid AWS / GCP / Firebase', 'Dashboards (CloudWatch + GA4)', 'Auto-scaling rituals', 'Cost optimization playbooks', 'VPC peering'],
     recommended: true,
-    cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
-    signal: 'Most picked'
+    cta: BOOKING_LINK,
+    signal: 'Most picked',
+    tags: ['Hybrid AWS/GCP', 'FinOps rituals', 'Analytics pods']
   },
   {
+    id: 'enterprise',
     name: 'Enterprise Velocity',
-    price: 15000,
-    suffix: '+',
+    priceLabel: 'RM 15,000+',
+    priceValue: 15000,
+    priceSuffix: '+',
     description: 'Custom infra, zero-trust guardrails, and multi-region DR.',
     bullets: ['Private clouds', 'Kubernetes + Helm', 'SOC2 audits', 'Multi-region DR', 'ERP / CRM integrations'],
-    cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
-    signal: 'Governed industries'
+    cta: BOOKING_LINK,
+    signal: 'Governed industries',
+    tags: ['Zero-trust', 'Multi-region', 'ERP integrations']
   }
 ];
 
-const faqItems = [
+const FALLBACK_FAQS: PricingFaqItem[] = [
   {
+    id: 'cloud-1',
     question: 'How fast do we deploy the first cloud cluster?',
     answer: 'Most Malaysian SMEs go live in 27 days. Week 1 maps landing zones, weeks 2-3 wire infra + security, week 4 handles QA, cutover, and dashboards.'
   },
   {
+    id: 'cloud-2',
     question: 'What about data security?',
     answer: 'Pods operate on SOC2-ready infrastructure with zero-trust templates, private repos, VPN access, and automated compliance snapshots.'
   },
   {
+    id: 'cloud-3',
     question: 'Can we integrate HubSpot, ERP, or Shopee data?',
     answer: 'Yes. We ship managed connectors for HubSpot, Shopee, Lazada, SAP/Oracle ERPs, and custom REST/GraphQL adapters.'
   }
 ];
 
-const metricBubbles = [
-  { label: 'Leads / week', value: '62', context: 'Lead velocity pods rebuilt Shopee+HubSpot sync for 62 qualified demos weekly.' },
-  { label: 'Efficiency', value: '3.4×', context: 'Ops team ship 3.4x more releases using shared Terraform kits + Firebase lanes.' },
-  { label: 'Uptime gains', value: '+48%', context: 'Chaos drills and blue/green cutovers bumped SLOs by 48% YoY.' },
-  { label: 'Payback', value: '<6 weeks', context: 'FinOps savings + automation offsets retainers in under 6 weeks.' }
+const METRIC_BUBBLES_FALLBACK: PricingMetricBubble[] = [
+  { id: 'leads', label: 'Leads / week', value: '62', context: 'Lead velocity pods rebuilt Shopee+HubSpot sync for 62 qualified demos weekly.' },
+  { id: 'efficiency', label: 'Efficiency', value: '3.4×', context: 'Ops team ship 3.4× more releases using shared Terraform kits + Firebase lanes.' },
+  { id: 'uptime', label: 'Uptime gains', value: '+48%', context: 'Chaos drills and blue/green cutovers bumped SLOs by 48% YoY.' },
+  { id: 'payback', label: 'Payback', value: '<6 weeks', context: 'FinOps savings + automation offsets retainers in under 6 weeks.' }
+];
+
+const ROI_SLIDERS_FALLBACK = [
+  { id: 'cloudCost', label: 'Cloud costs saved / year (RM)', min: 20000, max: 200000, step: 5000, defaultValue: 90000, unitPrefix: 'RM ', format: 'currency' },
+  { id: 'appsScaled', label: 'Apps scaled per year', min: 4, max: 40, step: 1, defaultValue: 14 },
+  { id: 'downtime', label: 'Downtime reduced (hrs)', min: 10, max: 120, step: 5, defaultValue: 42, unitSuffix: 'hrs', format: 'hours' }
 ];
 
 const footerIntegrations = [
@@ -151,7 +181,7 @@ const useCountUp = (target?: number, active?: boolean) => {
   return typeof target === 'number' ? value : undefined;
 };
 
-const MetricPill: React.FC<{ metric: (typeof heroMetrics)[number]; index: number }> = ({ metric, index }) => {
+const MetricPill: React.FC<{ metric: HeroMetricCard; index: number }> = ({ metric, index }) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
   const animatedValue = useCountUp(metric.target, inView);
@@ -180,16 +210,29 @@ const MetricPill: React.FC<{ metric: (typeof heroMetrics)[number]; index: number
   );
 };
 
-const AnimatedPrice: React.FC<{ amount: number; suffix?: string }> = ({ amount, suffix }) => {
+const AnimatedPrice: React.FC<{ amount?: number; suffix?: string; label?: string }> = ({ amount, suffix, label }) => {
+  if (typeof amount !== 'number') {
+    return (
+      <div>
+        <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white">
+          {label ?? 'Custom pricing'}
+          {suffix}
+        </p>
+        <p className="text-xs uppercase tracking-[0.45em] text-slate-500 mt-2 dark:text-white/60">per month</p>
+      </div>
+    );
+  }
+
   const ref = useRef<HTMLDivElement | null>(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
   const animatedValue = useCountUp(amount, inView);
   const display = animatedValue ?? amount;
+  const formatted = label ?? `RM ${Math.round(display).toLocaleString()}`;
 
   return (
     <div ref={ref}>
       <p className="text-4xl md:text-5xl font-black text-slate-900 drop-shadow-[0_20px_60px_rgba(6,182,212,0.2)] dark:text-white dark:drop-shadow-[0_20px_60px_rgba(6,182,212,0.35)]">
-        RM {Math.round(display).toLocaleString()}
+        {formatted}
         {suffix}
       </p>
       <p className="text-xs uppercase tracking-[0.45em] text-slate-500 mt-2 dark:text-white/60">per month</p>
@@ -198,9 +241,52 @@ const AnimatedPrice: React.FC<{ amount: number; suffix?: string }> = ({ amount, 
 };
 
 const CloudSolutionsPricing: React.FC = () => {
-  const [cloudCost, setCloudCost] = useState(90000);
-  const [appsScaled, setAppsScaled] = useState(14);
-  const [downtimeSaved, setDowntimeSaved] = useState(42);
+  const { pricingPages } = useData();
+  const pageContent = pricingPages?.cloud || DEFAULT_PRICING_PAGE_CONTENT.cloud;
+  const hero = pageContent.hero;
+  const heroChips = hero.chips && hero.chips.length ? hero.chips : HERO_BADGES_FALLBACK;
+  const heroMetrics = hero.metrics && hero.metrics.length
+    ? hero.metrics.map<HeroMetricCard>((metric) => ({
+        label: metric.label || metric.value || metric.subtext,
+        sub: metric.value || metric.subtext,
+        target: undefined
+      }))
+    : HERO_METRICS_FALLBACK;
+  const metricBubbles = pageContent.metricBubbles?.length ? pageContent.metricBubbles : METRIC_BUBBLES_FALLBACK;
+  const pricingTiers = pageContent.plans?.length ? pageContent.plans : FALLBACK_PLANS;
+  const faqItems = pageContent.faqs?.length ? pageContent.faqs : FALLBACK_FAQS;
+  const roiConfig = pageContent.roi;
+  const sliderDefs = roiConfig?.sliders?.length ? roiConfig.sliders : ROI_SLIDERS_FALLBACK;
+
+  const initialSliderValues = useMemo(
+    () =>
+      sliderDefs.reduce<Record<string, number>>((acc, slider) => {
+        acc[slider.id] = slider.defaultValue ?? slider.min ?? 0;
+        return acc;
+      }, {}),
+    [sliderDefs]
+  );
+
+  const [sliderValues, setSliderValues] = useState<Record<string, number>>(initialSliderValues);
+
+  useEffect(() => {
+    setSliderValues(initialSliderValues);
+  }, [initialSliderValues]);
+
+  const getSliderValue = (id: string, fallback: number) => sliderValues[id] ?? fallback;
+  const handleSliderChange = (id: string, value: number) => setSliderValues((prev) => ({ ...prev, [id]: value }));
+
+  const cloudCost = getSliderValue('cloudCost', 90000);
+  const appsScaled = getSliderValue('appsScaled', 14);
+  const downtimeSaved = getSliderValue('downtime', 42);
+
+  const formatSliderValue = (slider: typeof sliderDefs[number], value: number) => {
+    const formattedValue = slider.format === 'currency'
+      ? `${slider.unitPrefix ?? 'RM '}${value.toLocaleString()}${slider.unitSuffix ?? ''}`
+      : `${slider.unitPrefix ?? ''}${value}${slider.unitSuffix ?? ''}`;
+    return formattedValue;
+  };
+
   const [activeMetric, setActiveMetric] = useState(0);
   const [activePlan, setActivePlan] = useState(1);
 
@@ -209,9 +295,9 @@ const CloudSolutionsPricing: React.FC = () => {
     const appsValue = appsScaled * 8500;
     const downtimeValue = downtimeSaved * 1400;
     const projected = savings + appsValue + downtimeValue;
-    const roi = ((projected - 4999) / 4999) * 100;
+    const roi = ((projected - (roiConfig?.baselineCost ?? 4999)) / (roiConfig?.baselineCost ?? 4999)) * 100;
     return { savings, appsValue, downtimeValue, projected, roi };
-  }, [cloudCost, appsScaled, downtimeSaved]);
+  }, [cloudCost, appsScaled, downtimeSaved, roiConfig?.baselineCost]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-cyan-50 text-slate-900 transition-colors dark:from-[#040a1f] dark:via-[#0a1330] dark:to-[#151b3d] dark:text-white">
@@ -276,7 +362,7 @@ const CloudSolutionsPricing: React.FC = () => {
                 </a>
               </div>
               <div className="flex flex-wrap gap-3">
-                {heroBadges.map((chip) => (
+                {heroChips.map((chip) => (
                   <span
                     key={chip}
                     className="px-4 py-1.5 rounded-full border border-slate-200 text-xs uppercase tracking-[0.4em] text-slate-500 dark:border-white/20 dark:text-white/60"
@@ -412,6 +498,9 @@ const CloudSolutionsPricing: React.FC = () => {
           >
             {pricingTiers.map((tier, index) => {
               const active = activePlan === index;
+              const priceDisplay = tier.priceLabel || (tier.priceValue ? `RM ${tier.priceValue.toLocaleString()}` : tier.name);
+              const priceSuffix = tier.priceSuffix ?? '';
+              const tags = tier.tags ?? [];
               return (
                 <motion.article
                   key={tier.name}
@@ -429,7 +518,7 @@ const CloudSolutionsPricing: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs uppercase tracking-[0.45em] text-slate-500 dark:text-white/70">{tier.name}</p>
-                      <AnimatedPrice amount={tier.price} suffix={tier.suffix} />
+                      <AnimatedPrice amount={tier.priceValue} suffix={priceSuffix} label={priceDisplay} />
                     </div>
                     {tier.signal && (
                       <span className="px-3 py-1 rounded-full border border-emerald-200 text-[10px] uppercase tracking-[0.35em] text-emerald-700 dark:border-white/20 dark:text-white/80">
@@ -446,18 +535,20 @@ const CloudSolutionsPricing: React.FC = () => {
                       </li>
                     ))}
                   </ul>
-                  <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.35em] text-slate-500 dark:text-white/60">
-                    {['Switch anytime', 'Local support', 'Weekly reports'].map((chip) => (
-                      <span
-                        key={`${tier.name}-${chip}`}
-                        className={`px-3 py-1 rounded-full border ${
-                          active ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-white/40 dark:bg-white/10 dark:text-white' : 'border-slate-200 text-slate-500 dark:border-white/15 dark:text-white/70'
-                        }`}
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.35em] text-slate-500 dark:text-white/60">
+                      {tags.map((chip) => (
+                        <span
+                          key={`${tier.id ?? tier.name}-${chip}`}
+                          className={`px-3 py-1 rounded-full border ${
+                            active ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-white/40 dark:bg-white/10 dark:text-white' : 'border-slate-200 text-slate-500 dark:border-white/15 dark:text-white/70'
+                          }`}
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <a
                     href={tier.cta}
                     target="_blank"
@@ -476,15 +567,21 @@ const CloudSolutionsPricing: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="rounded-[28px] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-lg dark:border-white/10 dark:bg-white/5 dark:text-white/80"
           >
-            <p className="text-xs uppercase tracking-[0.45em] text-slate-500 dark:text-white/60">Plan intel</p>
-            <p className="text-lg font-semibold mt-2">{pricingTiers[activePlan].name}</p>
-            <p className="mt-2">{pricingTiers[activePlan].description}</p>
-            <p className="mt-4 text-xs uppercase tracking-[0.45em] text-slate-500 dark:text-white/60">Best when you need</p>
-            <p className="mt-1">
-              {activePlan === 0 && 'Fast pod activation, MVP velocity, Malaysian compliance guidance.'}
-              {activePlan === 1 && 'Balanced multi-cloud pods with strong FinOps + analytics rituals.'}
-              {activePlan === 2 && 'Full zero-trust governance, multi-region DR, and ERP-grade integrations.'}
-            </p>
+            {(() => {
+              const resolvedIndex = Math.min(activePlan, pricingTiers.length - 1);
+              const activePlanData = pricingTiers[resolvedIndex];
+              return (
+                <>
+                  <p className="text-xs uppercase tracking-[0.45em] text-slate-500 dark:text-white/60">Plan intel</p>
+                  <p className="text-lg font-semibold mt-2">{activePlanData?.name}</p>
+                  <p className="mt-2">{activePlanData?.description}</p>
+                  <p className="mt-4 text-xs uppercase tracking-[0.45em] text-slate-500 dark:text-white/60">Best when you need</p>
+                  <p className="mt-1">
+                    {activePlanData?.bestFor ?? 'Cloud pods with Malaysian timezone support, FinOps rituals, and compliance guardrails.'}
+                  </p>
+                </>
+              );
+            })()}
           </motion.div>
         </section>
 
@@ -497,24 +594,28 @@ const CloudSolutionsPricing: React.FC = () => {
           </div>
           <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="space-y-6 rounded-[36px] border border-slate-200 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-white/5">
-              {[
-                { label: 'Cloud costs saved / year (RM)', value: cloudCost, display: `RM ${cloudCost.toLocaleString()}`, setter: setCloudCost, min: 20000, max: 200000, step: 5000 },
-                { label: 'Apps scaled per year', value: appsScaled, display: `${appsScaled} apps`, setter: setAppsScaled, min: 4, max: 40, step: 1 },
-                { label: 'Downtime reduced (hrs)', value: downtimeSaved, display: `${downtimeSaved} hrs`, setter: setDowntimeSaved, min: 10, max: 120, step: 5 }
-              ].map((slider) => (
-                <div key={slider.label} className="space-y-2">
+              {sliderDefs.map((slider) => (
+                <div key={slider.id} className="space-y-2">
                   <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-white/60">
                     <span>{slider.label}</span>
-                    <span className="text-slate-700 dark:text-white/80">{slider.display}</span>
+                    <span className="text-slate-700 dark:text-white/80">{formatSliderValue(slider, getSliderValue(slider.id, slider.defaultValue ?? slider.min ?? 0))}</span>
                   </div>
-                  <input type="range" min={slider.min} max={slider.max} step={slider.step} value={slider.value} onChange={(e) => slider.setter(Number(e.target.value))} className={sliderClass} />
+                  <input
+                    type="range"
+                    min={slider.min}
+                    max={slider.max}
+                    step={slider.step}
+                    value={getSliderValue(slider.id, slider.defaultValue ?? slider.min ?? 0)}
+                    onChange={(e) => handleSliderChange(slider.id, Number(e.target.value))}
+                    className={sliderClass}
+                  />
                 </div>
               ))}
               <div className="flex flex-wrap gap-4">
                 <a href="https://stripe.com/payments" target="_blank" rel="noreferrer" className="px-6 py-3 rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 text-slate-900 font-semibold">
                   Download Report
                 </a>
-                <a href="https://calendly.com/admin-aurexissolution/30min?month=2026-01" target="_blank" rel="noreferrer" className="px-6 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold dark:border-white/30 dark:text-white">
+                <a href={BOOKING_LINK} target="_blank" rel="noreferrer" className="px-6 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold dark:border-white/30 dark:text-white">
                   Schedule ROI Call
                 </a>
               </div>
@@ -562,7 +663,7 @@ const CloudSolutionsPricing: React.FC = () => {
           <div className="space-y-4">
             {faqItems.map((faq) => (
               <motion.details
-                key={faq.question}
+                key={faq.id ?? faq.question}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

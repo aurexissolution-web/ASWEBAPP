@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useInView, animate } from 'framer-motion';
+import { useData } from '../context/DataContext';
+import { DEFAULT_PRICING_PAGE_CONTENT } from '../constants';
+import type { PricingPlan, PricingMetricBubble, PricingFaqItem } from '../types';
 import {
   Sparkles,
   BarChart3,
@@ -46,28 +49,34 @@ const heroCards = [
   }
 ];
 
-const pricingTiers = [
+const FALLBACK_PLANS: PricingPlan[] = [
   {
+    id: 'launch',
     name: 'Launch Pad',
-    price: 4999,
+    priceLabel: 'RM 4,999',
+    priceValue: 4999,
     description: 'Dashboard in 30 days with KPI clarity, Shopee viz, and Excel/Python cleanup.',
     bullets: ['Power BI MVP', 'KPI tracking', 'Data cleaning', 'Excel/Python basics', 'Shopee sales viz'],
     cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
     signal: 'Best for MVPs'
   },
   {
+    id: 'growth',
     name: 'Growth Ops',
-    price: 8000,
+    priceLabel: 'RM 8,000',
+    priceValue: 8000,
     description: 'Advanced analytics plus GA4 integration, predictive models, and experimentation.',
     bullets: ['Tableau dashboards', 'Predictive models', 'GA4 integration', 'A/B statistics', 'Custom reports'],
-    recommended: true,
     cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
+    recommended: true,
     signal: 'Most picked'
   },
   {
+    id: 'enterprise',
     name: 'Enterprise',
-    price: 15000,
-    suffix: '+',
+    priceLabel: 'RM 15,000+',
+    priceValue: 15000,
+    priceSuffix: '+',
     description: 'Snowflake/BigQuery, streaming, ML pipelines, and full compliance audits.',
     bullets: ['Snowflake / BigQuery', 'Python/TensorFlow pipelines', 'Real-time streaming', 'Compliance audits'],
     cta: 'https://calendly.com/admin-aurexissolution/30min?month=2026-01',
@@ -75,26 +84,29 @@ const pricingTiers = [
   }
 ];
 
-const faqItems = [
+const FALLBACK_METRICS: PricingMetricBubble[] = [
+  { id: 'insights', label: 'Insights / week', value: '62', context: '62 new insight cards ship weekly via Power BI alerts and Slack digests.' },
+  { id: 'speed', label: 'Decision speed', value: '3.4×', context: 'Teams act 3.4× faster using ready-to-deploy Python notebooks and viz templates.' },
+  { id: 'efficiency', label: 'Efficiency', value: '+48%', context: 'Data prep automation reclaimed 48% of analyst hours for strategic work.' },
+  { id: 'payback', label: 'Payback', value: '<6 weeks', context: 'Revenue trend dashboards plus automation offset retainers in roughly six weeks.' }
+];
+
+const FALLBACK_FAQS: PricingFaqItem[] = [
   {
+    id: 'data-faq-1',
     question: 'How fast do we ship the first dashboard?',
     answer: 'Most pods show the first Power BI dashboard within 27 days after data model alignment and QA rituals.'
   },
   {
+    id: 'data-faq-2',
     question: 'How is data security handled?',
     answer: 'Data is encrypted at rest, notebook execution is logged, and every pipeline maps to SOC2/GDPR controls with evidence packs.'
   },
   {
+    id: 'data-faq-3',
     question: 'Can you integrate CRM or Shopee data?',
     answer: 'Yes—we maintain Shopee/Lazada connectors plus CRM APIs (HubSpot, Salesforce, Zoho) with PDPA-compliant audit logs.'
   }
-];
-
-const metricBubbles = [
-  { label: 'Insights / week', value: '62', context: '62 new insight cards ship weekly via Power BI alerts and Slack digests.' },
-  { label: 'Decision speed', value: '3.4×', context: 'Teams act 3.4× faster using ready-to-deploy Python notebooks and viz templates.' },
-  { label: 'Efficiency', value: '+48%', context: 'Data prep automation reclaimed 48% of analyst hours for strategic work.' },
-  { label: 'Payback', value: '<6 weeks', context: 'Revenue trend dashboards plus automation offset retainers in roughly six weeks.' }
 ];
 
 const sliderClass =
@@ -142,11 +154,55 @@ const MetricStat: React.FC<{ metric: (typeof heroMetrics)[number]; index: number
 };
 
 const DataAnalysisPricing: React.FC = () => {
+  const { pricingPages } = useData();
+  const pageContent = pricingPages?.data || DEFAULT_PRICING_PAGE_CONTENT.data;
+  const hero = pageContent.hero;
+  const heroBullets = hero.bullets && hero.bullets.length > 0 ? hero.bullets : ['Power BI + Tableau pods', 'Python notebooks', 'Shopee + CRM connectors'];
+  const heroChips = hero.chips && hero.chips.length > 0 ? hero.chips : ['Power BI', 'Python', 'Shopee connectors'];
+  const metricBubbles: PricingMetricBubble[] = pageContent.metricBubbles?.length ? pageContent.metricBubbles : FALLBACK_METRICS;
+  const pricingTiers: PricingPlan[] = pageContent.plans?.length ? pageContent.plans : FALLBACK_PLANS;
+  const faqItems: PricingFaqItem[] = pageContent.faqs?.length ? pageContent.faqs : FALLBACK_FAQS;
+  const roiConfig = pageContent.roi;
+
+  const resultsHighlights = hero.metrics && hero.metrics.length > 0
+    ? hero.metrics.map(metric => ({ label: metric.label || metric.value || 'Metric', value: metric.value || metric.label || '' }))
+    : [
+        { label: 'Avg. Hours Saved', value: '62 /week' },
+        { label: 'Decision Speed Increase', value: '3.4× faster' },
+        { label: 'Lead Qualification Boost', value: '+48%' },
+        { label: 'Payback Period', value: 'under 6 weeks' }
+      ];
+
+  const sliderDefs = roiConfig?.sliders?.length
+    ? roiConfig.sliders
+    : [
+        { id: 'leads', label: 'Leads analyzed / month', min: 200, max: 4000, step: 100, defaultValue: 1200 },
+        { id: 'revenue', label: 'Revenue trend lift (%)', min: 5, max: 45, step: 1, defaultValue: 18, unitSuffix: '%', format: 'percent' },
+        { id: 'hours', label: 'Analyst hours saved / month', min: 10, max: 80, step: 1, defaultValue: 35, unitSuffix: 'hrs', format: 'hours' }
+      ];
+
+  const initialSliderValues = useMemo(
+    () =>
+      sliderDefs.reduce<Record<string, number>>((acc, slider) => {
+        acc[slider.id] = slider.defaultValue ?? slider.min ?? 0;
+        return acc;
+      }, {}),
+    [sliderDefs]
+  );
+
+  const [sliderValues, setSliderValues] = useState<Record<string, number>>(initialSliderValues);
+
+  useEffect(() => {
+    setSliderValues(initialSliderValues);
+  }, [initialSliderValues]);
+
+  const getSliderValue = (id: string, fallback: number) => sliderValues[id] ?? fallback;
+
   const [activeMetric, setActiveMetric] = useState(0);
-  const [leadsAnalyzed, setLeadsAnalyzed] = useState(1200);
-  const [revenueTrend, setRevenueTrend] = useState(18);
-  const [timeSaved, setTimeSaved] = useState(35);
   const [activePlan, setActivePlan] = useState(1);
+  const leadsAnalyzed = getSliderValue('leads', 1200);
+  const revenueTrend = getSliderValue('revenue', 18);
+  const timeSaved = getSliderValue('hours', 35);
 
   const projections = useMemo(() => {
     const leadValue = leadsAnalyzed * 25;
@@ -156,6 +212,10 @@ const DataAnalysisPricing: React.FC = () => {
     const roi = ((total - 4999) / 4999) * 100;
     return { leadValue, revenueValue, timeValue, total, roi };
   }, [leadsAnalyzed, revenueTrend, timeSaved]);
+
+  const handleSliderChange = (id: string, value: number) => {
+    setSliderValues(prev => ({ ...prev, [id]: value }));
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50 text-slate-900 transition-colors dark:from-[#040a1f] dark:via-[#0a1330] dark:to-[#151b3d] dark:text-white">
@@ -198,14 +258,14 @@ const DataAnalysisPricing: React.FC = () => {
               className="space-y-8"
             >
               <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full border border-emerald-200 bg-emerald-50 text-xs tracking-[0.45em] uppercase text-emerald-700 dark:border-white/20 dark:bg-white/5 dark:text-emerald-200">
-                <Sparkles size={16} /> Data Pod
+                {hero.eyebrow ?? 'Data Pod'}
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[0.9] text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-cyan-600 to-sky-500 drop-shadow-[0_30px_70px_rgba(6,182,212,0.25)] dark:from-cyan-200 dark:via-white dark:to-sky-200 dark:drop-shadow-[0_30px_70px_rgba(6,182,212,0.35)]">
-                Spin Up Your Data Pod
-                <br /> with Aurexis Solution workflows
+                {hero.title ?? 'Spin Up Your Data Pod'}
+                <br /> {hero.highlight ?? 'with Aurexis Solution workflows'}
               </h1>
               <p className="text-lg text-slate-600 dark:text-white/75 max-w-2xl">
-                Unlock insights with live dashboards, Malaysian data compliance, and Shopee-ready connectors.
+                {hero.subtitle ?? 'Unlock insights with live dashboards, Malaysian data compliance, and Shopee-ready connectors.'}
               </p>
               <div className="flex flex-wrap gap-4">
                 <a
@@ -226,12 +286,12 @@ const DataAnalysisPricing: React.FC = () => {
                 </a>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                {heroMetrics.map((metric, index) => (
-                  <MetricStat key={metric.label} metric={metric} index={index} />
+                {(hero.metrics && hero.metrics.length ? hero.metrics : heroMetrics).map((metric, index) => (
+                  <MetricStat key={`${metric.label}-${index}`} metric={metric} index={index} />
                 ))}
               </div>
               <div className="flex flex-wrap gap-3">
-                {heroBadges.map((chip) => (
+                {heroChips.map((chip) => (
                   <span
                     key={chip}
                     className="px-4 py-1.5 rounded-full border border-slate-200 text-xs uppercase tracking-[0.4em] text-slate-500 dark:border-white/20 dark:text-white/60"
@@ -344,6 +404,9 @@ const DataAnalysisPricing: React.FC = () => {
           >
             {pricingTiers.map((tier, index) => {
               const active = activePlan === index;
+              const priceDisplay = tier.priceLabel || (tier.priceValue ? `RM ${tier.priceValue.toLocaleString()}` : '');
+              const priceSuffix = tier.priceSuffix ?? '';
+              const tags = tier.tags ?? [];
               return (
                 <motion.article
                   key={tier.name}
@@ -362,8 +425,8 @@ const DataAnalysisPricing: React.FC = () => {
                     <div>
                       <p className="text-xs uppercase tracking-[0.45em] text-slate-500 dark:text-white/70">{tier.name}</p>
                       <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white">
-                        RM {tier.price.toLocaleString()}
-                        {tier.suffix}
+                        {priceDisplay}
+                        {priceSuffix}
                       </p>
                       <p className="text-xs uppercase tracking-[0.45em] text-slate-500 dark:text-white/60 mt-2">per month</p>
                     </div>
@@ -381,18 +444,20 @@ const DataAnalysisPricing: React.FC = () => {
                       </li>
                     ))}
                   </ul>
-                  <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.35em] text-slate-500 dark:text-white/60">
-                    {['Power BI', 'Python notebooks', 'Tableau flows', 'Shopee connectors', 'MY compliance', 'Weekly retros'].map((chip) => (
-                      <span
-                        key={`${tier.name}-${chip}`}
-                        className={`px-3 py-1 rounded-full border ${
-                          active ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-white/40 dark:bg-white/10 dark:text-white' : 'border-slate-200 text-slate-500 dark:border-white/15 dark:text-white/70'
-                        }`}
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.35em] text-slate-500 dark:text-white/60">
+                      {tags.map((chip) => (
+                        <span
+                          key={`${tier.id ?? tier.name}-${chip}`}
+                          className={`px-3 py-1 rounded-full border ${
+                            active ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-white/40 dark:bg-white/10 dark:text-white' : 'border-slate-200 text-slate-500 dark:border-white/15 dark:text-white/70'
+                          }`}
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <a
                     href={tier.cta}
                     target="_blank"
@@ -411,15 +476,21 @@ const DataAnalysisPricing: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="rounded-[28px] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-lg dark:border-white/10 dark:bg-white/5 dark:text-white/80"
           >
-            <p className="text-xs uppercase tracking_[0.45em] text-slate-500 dark:text-white/60">Plan intel</p>
-            <p className="text-lg font-semibold mt-2">{pricingTiers[activePlan].name}</p>
-            <p className="mt-2">{pricingTiers[activePlan].description}</p>
-            <p className="mt-4 text-xs uppercase tracking_[0.45em] text-slate-500 dark:text-white/60">Best when you need</p>
-            <p className="mt-1">
-              {activePlan === 0 && 'Fast dashboard MVPs, KPI clarity, and Shopee/Excel blends.'}
-              {activePlan === 1 && 'Predictive analytics, experimentation support, and blended GA4 dashboards.'}
-              {activePlan === 2 && 'Snowflake-scale data lakes, ML pipelines, and regulated audit trails.'}
-            </p>
+            {(() => {
+              const resolvedIndex = Math.min(activePlan, pricingTiers.length - 1);
+              const activePlanData = pricingTiers[resolvedIndex];
+              return (
+                <>
+                  <p className="text-xs uppercase tracking_[0.45em] text-slate-500 dark:text-white/60">Plan intel</p>
+                  <p className="text-lg font-semibold mt-2">{activePlanData?.name}</p>
+                  <p className="mt-2">{activePlanData?.description}</p>
+                  <p className="mt-4 text-xs uppercase tracking_[0.45em] text-slate-500 dark:text-white/60">Best when you need</p>
+                  <p className="mt-1">
+                    {activePlanData?.bestFor ?? 'Data pods with Malaysian timezone support and CFO-ready insights.'}
+                  </p>
+                </>
+              );
+            })()}
           </motion.div>
         </section>
 
@@ -453,27 +524,29 @@ const DataAnalysisPricing: React.FC = () => {
           <div className="space-y-3 max-w-3xl">
             <p className="text-xs uppercase tracking_[0.5em] text-slate-500 dark:text-white/60">Your analytics ROI</p>
             <h2 className="text-4xl font-black text-slate-900 dark:text-white">Interactive ROI calculator</h2>
-            <p className="text-slate-600 dark:text-white/70">Adjust processed leads, revenue lifts, and saved analyst hours to see RM gains.</p>
+            <p className="text-slate-600 dark:text-white/70">
+              Adjust processed leads, revenue lifts, and saved analyst hours to see RM gains.
+            </p>
           </div>
           <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="space-y-6 rounded-[36px] border border-slate-200 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-white/5">
-              {[
-                { label: 'Leads analyzed / month', value: leadsAnalyzed, display: `${leadsAnalyzed.toLocaleString()} leads`, setter: setLeadsAnalyzed, min: 200, max: 4000, step: 100 },
-                { label: 'Revenue trend lift (%)', value: revenueTrend, display: `${revenueTrend}%`, setter: setRevenueTrend, min: 5, max: 45, step: 1 },
-                { label: 'Analyst hours saved / month', value: timeSaved, display: `${timeSaved} hrs`, setter: setTimeSaved, min: 10, max: 80, step: 1 }
-              ].map((slider) => (
-                <div key={slider.label} className="space-y-2">
+              {sliderDefs.map(slider => (
+                <div key={slider.id} className="space-y-2">
                   <div className="flex items-center justify-between text-xs uppercase tracking_[0.4em] text-slate-500 dark:text-white/60">
                     <span>{slider.label}</span>
-                    <span className="text-slate-700 dark:text-white/80">{slider.display}</span>
+                    <span className="text-slate-700 dark:text-white/80">
+                      {slider.format === 'currency'
+                        ? `${slider.unitPrefix ?? 'RM '}${(sliderValues[slider.id] ?? slider.defaultValue ?? slider.min).toLocaleString()}${slider.unitSuffix ?? ''}`
+                        : `${slider.unitPrefix ?? ''}${sliderValues[slider.id] ?? slider.defaultValue ?? slider.min}${slider.unitSuffix ?? ''}`}
+                    </span>
                   </div>
                   <input
                     type="range"
                     min={slider.min}
                     max={slider.max}
                     step={slider.step}
-                    value={slider.value}
-                    onChange={(e) => slider.setter(Number(e.target.value))}
+                    value={sliderValues[slider.id] ?? slider.defaultValue ?? slider.min}
+                    onChange={e => handleSliderChange(slider.id, Number(e.target.value))}
                     className={sliderClass}
                   />
                 </div>

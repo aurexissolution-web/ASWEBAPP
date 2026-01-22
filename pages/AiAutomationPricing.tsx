@@ -1,5 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useData } from '../context/DataContext';
+import { DEFAULT_PRICING_PAGE_CONTENT } from '../constants';
+import type { PricingPlan, PricingMetricBubble, PricingFaqItem } from '../types';
 import {
   Sparkles,
   Bot,
@@ -14,42 +17,6 @@ import {
 } from 'lucide-react';
 
 const BOOKING_LINK = 'https://calendly.com/admin-aurexissolution/30min?month=2026-01';
-
-const tierData = [
-  {
-    name: 'Launch Pad',
-    price: 'RM 4,999',
-    cadence: 'per month',
-    badge: 'Best for SMEs starting automation',
-    description: 'Deploy a single AI agent for lead capture or support automation in 30 days.',
-    features: ['AI lead/chat agent', 'WhatsApp + web widget', 'CRM + Sheets sync', 'Weekly automation reports'],
-    gradient: 'from-emerald-400/80 via-cyan-400/80 to-blue-500/80'
-  },
-  {
-    name: 'Growth Ops',
-    price: 'RM 8,900',
-    cadence: 'per month',
-    badge: 'Most popular for scaling teams',
-    description: 'Multi-agent workflow orchestration with routing, analytics and KPI boards.',
-    features: [
-      '3 coordinated AI agents',
-      'Pipeline + invoicing automation',
-      '24/7 monitoring dashboard',
-      'Dedicated automation strategist'
-    ],
-    recommended: true,
-    gradient: 'from-purple-500 via-indigo-500 to-blue-500'
-  },
-  {
-    name: 'Enterprise Velocity',
-    price: 'RM 15,000+',
-    cadence: 'per month',
-    badge: 'For compliance-heavy operations',
-    description: 'Custom guardrails, on-prem connectors, advanced analytics and governance.',
-    features: ['Private data connectors', 'Human-in-loop approvals', 'Custom analytics apps', 'Priority support SLA'],
-    gradient: 'from-amber-400 via-orange-500 to-rose-500'
-  }
-];
 
 const gridLinePositions = Array.from({ length: 8 }, (_, i) => (i + 1) * 10);
 
@@ -68,13 +35,6 @@ const nodeConfigs = [
   { top: '70%', left: '78%' }
 ];
 
-const resultsHighlights = [
-  { label: 'Avg. Hours Saved', value: '62 /week' },
-  { label: 'Sales Speed Increase', value: '3.4× faster' },
-  { label: 'Lead Qualification Boost', value: '+48%' },
-  { label: 'Payback Period', value: 'under 6 weeks' }
-];
-
 const pilotBenefits = ['Custom fine-tuned agents', 'Live performance cockpit', 'Audit + guardrails'];
 
 const pilotMetrics = [
@@ -84,22 +44,18 @@ const pilotMetrics = [
   { label: 'Compliance docs', value: 'SOC2-ready' }
 ];
 
-const faqItems = [
+const tierGradients = [
   {
-    question: 'How fast can we launch our first AI agent?',
-    answer: 'Most Malaysian SMEs ship their first production-ready automation in 21 days. We front-load workflow mapping, data prep and compliance so go-live is predictable.'
+    light: 'from-emerald-400/80 via-cyan-400/80 to-blue-500/80',
+    dark: 'dark:from-[#032420] dark:via-[#082c3a] dark:to-[#020f1a]'
   },
   {
-    question: 'Where does my data live and how is it secured?',
-    answer: 'We deploy on SOC 2 compliant infrastructure with per-client data scopes. Enterprise plans support private VPC or on-prem connectors plus audit logging.'
+    light: 'from-purple-500 via-indigo-500 to-blue-500',
+    dark: 'dark:from-[#1a1036] dark:via-[#221148] dark:to-[#090717]'
   },
   {
-    question: 'What support is included?',
-    answer: 'All tiers include automation health monitoring, monthly refinement sprints, and WhatsApp + email support. Growth Ops and up receive dedicated strategists.'
-  },
-  {
-    question: 'Can you integrate with our existing CRM/ERP?',
-    answer: 'Yes — we ship prebuilt connectors for HubSpot, Salesforce, Zoho, Deskera and custom REST/GraphQL APIs. Enterprise Velocity includes bespoke adapters.'
+    light: 'from-amber-400 via-orange-500 to-rose-500',
+    dark: 'dark:from-[#2e0d15] dark:via-[#3c151d] dark:to-[#140407]'
   }
 ];
 
@@ -109,10 +65,57 @@ const orbVariants = {
 };
 
 const AiAutomationPricing: React.FC = () => {
-  const [dailyLeads, setDailyLeads] = useState(80);
-  const [conversionRate, setConversionRate] = useState(18);
-  const [avgDealValue, setAvgDealValue] = useState(2200);
-  const [hoursSaved, setHoursSaved] = useState(55);
+  const { pricingPages } = useData();
+  const pageContent = pricingPages?.ai || DEFAULT_PRICING_PAGE_CONTENT.ai;
+  const hero = pageContent.hero;
+  const heroBullets = hero.bullets && hero.bullets.length > 0
+    ? hero.bullets
+    : ['3-7 agent pods orchestrated across WhatsApp, HubSpot, and Sheets', 'SOC2-ready guardrails with human-in-loop approvals', 'Live KPI cockpit + anomaly nudges every dawn'];
+  const heroChips = hero.chips && hero.chips.length > 0 ? hero.chips : ['Lead Concierge', 'Ops Pilot', 'Insights Copilot'];
+  const metricBubbles: PricingMetricBubble[] = pageContent.metricBubbles ?? [];
+  const pricingTiers: PricingPlan[] = pageContent.plans ?? [];
+  const faqItems: PricingFaqItem[] = pageContent.faqs ?? [];
+  const roiConfig = pageContent.roi;
+
+  const resultsHighlights = hero.metrics && hero.metrics.length > 0
+    ? hero.metrics.map(metric => ({ label: metric.label || metric.value || 'Metric', value: metric.value || metric.label || '' }))
+    : [
+        { label: 'Avg. Hours Saved', value: '62 /week' },
+        { label: 'Sales Speed Increase', value: '3.4× faster' },
+        { label: 'Lead Qualification Boost', value: '+48%' },
+        { label: 'Payback Period', value: 'under 6 weeks' }
+      ];
+
+  const sliderDefs = roiConfig?.sliders?.length
+    ? roiConfig.sliders
+    : [
+        { id: 'dailyLeads', label: 'Daily qualified leads', min: 20, max: 200, step: 1, defaultValue: 80 },
+        { id: 'closeRate', label: 'Close rate (%)', min: 5, max: 60, step: 1, defaultValue: 18, unitSuffix: '%', format: 'percent' },
+        { id: 'avgDealValue', label: 'Average deal (RM)', min: 800, max: 6000, step: 100, defaultValue: 2200, unitPrefix: 'RM ', format: 'currency' },
+        { id: 'hoursSaved', label: 'Hours saved / week', min: 10, max: 120, step: 5, defaultValue: 55, unitSuffix: 'hrs', format: 'hours' }
+      ];
+
+  const initialSliderValues = useMemo(
+    () =>
+      sliderDefs.reduce<Record<string, number>>((acc, slider) => {
+        acc[slider.id] = slider.defaultValue ?? slider.min ?? 0;
+        return acc;
+      }, {}),
+    [sliderDefs]
+  );
+
+  const [sliderValues, setSliderValues] = useState<Record<string, number>>(initialSliderValues);
+
+  useEffect(() => {
+    setSliderValues(initialSliderValues);
+  }, [initialSliderValues]);
+
+  const getSliderValue = (id: string, fallback: number) => sliderValues[id] ?? fallback;
+
+  const dailyLeads = getSliderValue('dailyLeads', 80);
+  const conversionRate = getSliderValue('closeRate', 18);
+  const avgDealValue = getSliderValue('avgDealValue', 2200);
+  const hoursSaved = getSliderValue('hoursSaved', 55);
 
   const projections = useMemo(() => {
     const monthlyLeads = dailyLeads * 26; // approximate working days
@@ -132,12 +135,9 @@ const AiAutomationPricing: React.FC = () => {
   const sliderClass =
     'w-full accent-cyan-500 dark:accent-cyan-300 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-500 [&::-webkit-slider-thumb]:shadow-[0_0_18px_rgba(34,211,238,0.3)] h-1 rounded-full bg-slate-200 dark:bg-white/10';
 
-  const roiInputs = [
-    { id: 'daily', label: 'Daily qualified leads', value: dailyLeads, display: dailyLeads, min: 20, max: 200, step: 1, setter: setDailyLeads },
-    { id: 'close', label: 'Close rate (%)', value: conversionRate, display: `${conversionRate}%`, min: 5, max: 60, step: 1, setter: setConversionRate },
-    { id: 'aov', label: 'Average deal (RM)', value: avgDealValue, display: `RM ${avgDealValue.toLocaleString()}`, min: 800, max: 6000, step: 100, setter: setAvgDealValue },
-    { id: 'hours', label: 'Hours saved / week', value: hoursSaved, display: `${hoursSaved} hrs`, min: 10, max: 120, step: 5, setter: setHoursSaved }
-  ];
+  const handleSliderChange = (id: string, value: number) => {
+    setSliderValues(prev => ({ ...prev, [id]: value }));
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 text-slate-900 transition-colors dark:from-slate-900 dark:via-blue-950/80 dark:to-slate-900/90 dark:text-white">
@@ -196,19 +196,19 @@ const AiAutomationPricing: React.FC = () => {
         <section className="py-16 lg:py-20 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] items-center">
           <div className="space-y-6 text-left">
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-3 px-5 py-2 rounded-full border border-emerald-200 bg-emerald-50 backdrop-blur text-xs uppercase tracking-[0.35em] text-emerald-700 dark:border-white/20 dark:bg-white/5 dark:text-emerald-200">
-              MAGNETIC AI PODS
+              {hero.eyebrow ?? 'MAGNETIC AI PODS'}
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.65)]" />
-              RM 4,999 LAUNCH
+              {hero.badge ?? 'RM 4,999 LAUNCH'}
             </motion.div>
             <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="text-4xl lg:text-[52px] font-black leading-snug">
-              <span className="block text-[1.1em] bg-gradient-to-r from-slate-900 via-cyan-700 to-blue-600 bg-clip-text text-transparent dark:from-white dark:via-cyan-50 dark:to-blue-100">Magnetic AI Automation</span>
-              <span className="block text-[1.05em] bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Pricing Hero</span>
+              <span className="block text-[1.1em] bg-gradient-to-r from-slate-900 via-cyan-700 to-blue-600 bg-clip-text text-transparent dark:from-white dark:via-cyan-50 dark:to-blue-100">{hero.title ?? 'Magnetic AI Automation'}</span>
+              <span className="block text-[1.05em] bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">{hero.highlight ?? 'Pricing Hero'}</span>
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-base lg:text-lg text-slate-600 max-w-2xl dark:text-white/85">
-              Asymmetric hero built for revenue teams adopting AI pods. Plug in automation blueprints, surface live ROI, and let prospects experience the demo bot mid-scroll.
+              {hero.subtitle ?? 'Asymmetric hero built for revenue teams adopting AI pods. Plug in automation blueprints, surface live ROI, and let prospects experience the demo bot mid-scroll.'}
             </motion.p>
             <div className="space-y-3">
-              {['3-7 agent pods orchestrated across WhatsApp, HubSpot, and Sheets', 'SOC2-ready guardrails with human-in-loop approvals', 'Live KPI cockpit + anomaly nudges every dawn'].map((item) => (
+              {heroBullets.map((item) => (
                 <div key={item} className="flex items-center gap-3 text-slate-600 dark:text-white/80">
                   <span className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.6)]" />
                   <span className="text-base lg:text-lg">{item}</span>
@@ -217,16 +217,28 @@ const AiAutomationPricing: React.FC = () => {
             </div>
             <div className="flex flex-wrap gap-4">
               <a
-                href={BOOKING_LINK}
+                href={hero.ctas?.primaryLink || BOOKING_LINK}
                 target="_blank"
                 rel="noreferrer"
                 className="px-8 py-4 rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 text-slate-900 font-semibold text-lg shadow-[0_15px_40px_rgba(6,182,212,0.35)] hover:translate-y-[-2px] transition-transform"
               >
-                Book AI Pricing Lab
+                {hero.ctas?.primaryLabel ?? 'Book AI Pricing Lab'}
               </a>
-              <button className="px-8 py-4 rounded-full border border-slate-300 text-slate-700 font-semibold text-lg backdrop-blur hover:bg-slate-100 transition dark:border-white/30 dark:text-white">
-                Download Playbook
+              <button className="px-8 py-4 rounded-full border border-slate-300 text-slate-700 font-semibold text-lg backdrop-blur hover:bg-slate-100 transition dark:border-white/30 dark:text-white"
+                onClick={() => hero.ctas?.secondaryLink && window.open(hero.ctas.secondaryLink, '_blank')}
+                type="button"
+              >
+                {hero.ctas?.secondaryLabel ?? 'Download Playbook'}
               </button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.35em] text-slate-500 dark:text-white/60">
+                {heroChips.map((chip) => (
+                  <span key={chip} className="px-4 py-1 rounded-full border border-slate-200 dark:border-white/20 dark:text-white/80">
+                    {chip}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
           <motion.div initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="relative max-w-md w-full ml-auto mr-auto lg:mr-0">
@@ -287,13 +299,25 @@ const AiAutomationPricing: React.FC = () => {
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }} className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] relative">
             <div className="space-y-8 rounded-[36px] border border-slate-200 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-white/5">
-              {roiInputs.map(({ id, label, value, display, min, max, step, setter }) => (
-                <div key={id} className="space-y-2">
+              {sliderDefs.map(slider => (
+                <div key={slider.id} className="space-y-2">
                   <div className="flex justify-between text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-white/60">
-                    <span>{label}</span>
-                    <span className="text-slate-700 dark:text-white/85">{display}</span>
+                    <span>{slider.label}</span>
+                    <span className="text-slate-700 dark:text-white/85">
+                      {slider.format === 'currency'
+                        ? `${slider.unitPrefix ?? 'RM '}${(sliderValues[slider.id] ?? slider.defaultValue ?? slider.min).toLocaleString()}${slider.unitSuffix ?? ''}`
+                        : `${slider.unitPrefix ?? ''}${sliderValues[slider.id] ?? slider.defaultValue ?? slider.min}${slider.unitSuffix ?? ''}`}
+                    </span>
                   </div>
-                  <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => setter(Number(e.target.value))} className={sliderClass} />
+                  <input
+                    type="range"
+                    min={slider.min}
+                    max={slider.max}
+                    step={slider.step}
+                    value={sliderValues[slider.id] ?? slider.defaultValue ?? slider.min}
+                    onChange={e => handleSliderChange(slider.id, Number(e.target.value))}
+                    className={sliderClass}
+                  />
                 </div>
               ))}
               <div className="flex flex-wrap gap-4">
@@ -363,46 +387,74 @@ const AiAutomationPricing: React.FC = () => {
               <p className="text-lg text-slate-600 dark:text-white/80">Switch plans anytime. Every tier includes Malaysian timezone support, compliance-ready playbooks and success rituals.</p>
             </div>
             <div className="grid gap-8 lg:grid-cols-3">
-              {tierData.map((tier) => (
-                <motion.div
-                  key={tier.name}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5 }}
-                  className={`relative rounded-[32px] border p-8 flex flex-col gap-6 shadow-[0_25px_80px_rgba(15,118,110,0.15)] bg-gradient-to-br from-white via-slate-50 to-blue-50 text-slate-900 border-slate-200 dark:border-white/10 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 dark:text-white ${
-                    tier.recommended ? 'ring-2 ring-cyan-400/60 shadow-2xl shadow-cyan-500/20' : ''
-                  }`}
-                >
-                  <div>
-                    <span className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">{tier.badge}</span>
-                    <h3 className="text-3xl font-black mt-3">{tier.name}</h3>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-black text-slate-900 dark:text-white">{tier.price}</div>
-                    <div className="text-slate-500 dark:text-white/70">{tier.cadence}</div>
-                  </div>
-                  <p className="text-slate-600 dark:text-white/70">{tier.description}</p>
-                  <div className="space-y-3">
-                    {tier.features.map((feature) => (
-                      <div key={feature} className="flex items-center gap-3 text-slate-700 dark:text-white/80">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 flex items-center justify-center text-white shadow">
-                          <Sparkles size={16} />
-                        </div>
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-                  <a
-                    href={BOOKING_LINK}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-auto w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 text-slate-900 font-semibold flex items-center justify-center gap-2"
+              {pricingTiers.map((tier, index) => {
+                const gradients = tierGradients[index % tierGradients.length];
+                const priceDisplay = tier.priceLabel || (tier.priceValue ? `RM ${tier.priceValue.toLocaleString()}` : '');
+                const priceSuffix = tier.priceSuffix ?? '';
+                const tags = tier.tags ?? [];
+                return (
+                  <motion.div
+                    key={tier.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                    className={`relative rounded-[32px] border p-8 flex flex-col gap-6 shadow-[0_25px_80px_rgba(15,118,110,0.15)] bg-gradient-to-br ${gradients.light} text-slate-900 border-slate-200 dark:border-white/10 dark:bg-gradient-to-br ${gradients.dark} dark:text-white ${
+                      tier.recommended ? 'ring-2 ring-cyan-400/60 shadow-2xl shadow-cyan-500/20' : ''
+                    }`}
                   >
-                    Book This Plan <ChevronRight size={18} />
-                  </a>
-                </motion.div>
-              ))}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">{tier.signal ?? tier.bestFor ?? 'Pod lane'}</p>
+                        <h3 className="text-3xl font-black mt-3">{tier.name}</h3>
+                      </div>
+                      {tier.recommended && (
+                        <span className="px-3 py-1 rounded-full border border-emerald-200 bg-white/70 text-[10px] uppercase tracking-[0.35em] text-emerald-700 dark:border-white/20 dark:bg-white/20 dark:text-white">
+                          Most picked
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-4xl font-black text-slate-900 dark:text-white">
+                        {priceDisplay}
+                        {priceSuffix}
+                      </div>
+                      <div className="text-slate-500 dark:text-white/70">{tier.bestFor ?? 'Per month'}</div>
+                    </div>
+                    <p className="text-slate-600 dark:text-white/70">{tier.description}</p>
+                    <div className="space-y-3">
+                      {(tier.bullets ?? []).map((bullet) => (
+                        <div key={bullet} className="flex items-center gap-3 text-slate-700 dark:text-white/80">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 flex items-center justify-center text-white shadow">
+                            <Sparkles size={16} />
+                          </div>
+                          {bullet}
+                        </div>
+                      ))}
+                    </div>
+                    {tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.35em] text-slate-500 dark:text-white/60">
+                        {tags.map((chip) => (
+                          <span
+                            key={`${tier.id}-${chip}`}
+                            className={`px-3 py-1 rounded-full border ${tier.recommended ? 'border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-white/40 dark:bg-white/15 dark:text-white' : 'border-slate-200 text-slate-500 dark:border-white/15 dark:text-white/70'}`}
+                          >
+                            {chip}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <a
+                      href={tier.cta || BOOKING_LINK}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-auto w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 text-slate-900 font-semibold flex items-center justify-center gap-2"
+                    >
+                      Book This Plan <ChevronRight size={18} />
+                    </a>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </section>
