@@ -5,6 +5,12 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == 'sanjaygunabalan2626@gmail.com' || 
+         request.auth.token.email == 'admin@aurexis.com');
+    }
+
     // Public newsletter opt-ins (anonymous auth allowed)
     match /newsletterLeads/{leadId} {
       allow read: if false;
@@ -16,19 +22,19 @@ service cloud.firestore {
     }
 
     // Collections read by the public site, written via admin
-    match /siteSettings/{docId}         { allow read: if true; allow write: if isAuthenticated(); }
-    match /services/{docId}             { allow read: if true; allow write: if isAuthenticated(); }
-    match /serviceDetails/{docId}       { allow read: if true; allow write: if isAuthenticated(); }
-    match /testimonials/{docId}         { allow read: if true; allow write: if isAuthenticated(); }
-    match /pricingTiers/{docId}         { allow read: if true; allow write: if isAuthenticated(); }
-    match /pricingPages/{docId}         { allow read: if true; allow write: if isAuthenticated(); }
-    match /projects/{docId}             { allow read: if true; allow write: if isAuthenticated(); }
-    match /blogPosts/{docId}            { allow read: if true; allow write: if isAuthenticated(); }
-    match /faqs/{docId}                 { allow read: if true; allow write: if isAuthenticated(); }
-    match /socialLinks/{docId}          { allow read: if true; allow write: if isAuthenticated(); }
-    match /homepageSettings/{docId}     { allow read: if true; allow write: if isAuthenticated(); }
-    match /homepageContent/{docId}      { allow read: if true; allow write: if isAuthenticated(); }
-    match /aboutPageSettings/{docId}    { allow read: if true; allow write: if isAuthenticated(); }
+    match /siteSettings/{docId}         { allow read: if true; allow write: if isAdmin(); }
+    match /services/{docId}             { allow read: if true; allow write: if isAdmin(); }
+    match /serviceDetails/{docId}       { allow read: if true; allow write: if isAdmin(); }
+    match /testimonials/{docId}         { allow read: if true; allow write: if isAdmin(); }
+    match /pricingTiers/{docId}         { allow read: if true; allow write: if isAdmin(); }
+    match /pricingPages/{docId}         { allow read: if true; allow write: if isAdmin(); }
+    match /projects/{docId}             { allow read: if true; allow write: if isAdmin(); }
+    match /blogPosts/{docId}            { allow read: if true; allow write: if isAdmin(); }
+    match /faqs/{docId}                 { allow read: if true; allow write: if isAdmin(); }
+    match /socialLinks/{docId}          { allow read: if true; allow write: if isAdmin(); }
+    match /homepageSettings/{docId}     { allow read: if true; allow write: if isAdmin(); }
+    match /homepageContent/{docId}      { allow read: if true; allow write: if isAdmin(); }
+    match /aboutPageSettings/{docId}    { allow read: if true; allow write: if isAdmin(); }
 
     match /{document=**} {
       allow read: if true;
