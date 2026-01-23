@@ -35,12 +35,15 @@ try {
   auth = getAuth(app);
   if (shouldEnablePersistence) {
     db = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager()
       })
     });
   } else {
-    db = getFirestore(app);
+    db = initializeFirestore(app, {
+      experimentalForceLongPolling: true
+    });
   }
   storage = getStorage(app);
   

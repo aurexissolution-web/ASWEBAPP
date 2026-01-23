@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, isSupported as isAnalyticsSupported } from 'firebase/analytics';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,7 +13,9 @@ const firebaseConfig = {
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+const db = initializeFirestore(firebaseApp, {
+  experimentalForceLongPolling: true
+});
 
 const initAnalytics = async () => {
   if (await isAnalyticsSupported()) {
