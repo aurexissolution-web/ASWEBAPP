@@ -6,9 +6,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && 
-        (request.auth.token.email == 'sanjaygunabalan2626@gmail.com' || 
-         request.auth.token.email == 'admin@aurexis.com');
+      return isAuthenticated();
     }
 
     // Public newsletter opt-ins (anonymous auth allowed)
