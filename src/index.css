@@ -133,6 +133,21 @@ html {
   mix-blend-mode: overlay;
 }
 
+/* Reduced motion: tone down global animated background */
+@media (prefers-reduced-motion: reduce) {
+  .animated-bg {
+    display: none;
+  }
+  .bg-orb {
+    animation: none !important;
+    filter: blur(40px);
+    opacity: 0.25;
+  }
+  .noise-overlay {
+    opacity: 0.02;
+  }
+}
+
 .preserve-3d {
   transform-style: preserve-3d;
 }

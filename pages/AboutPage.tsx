@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring, useMotionTemplate } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import { cn } from '@/lib/utils';
@@ -85,25 +85,58 @@ const InteractiveCard: React.FC<{
   compact?: boolean;
 }> = ({ card, index, isDark, compact = false }) => {
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
   const rotateX = useSpring(tiltY, { stiffness: 80, damping: 20 });
   const rotateY = useSpring(tiltX, { stiffness: 80, damping: 20 });
-  const [glow, setGlow] = useState({ x: 50, y: 50 });
+  
+  const glowX = useMotionValue(50);
+  const glowY = useMotionValue(50);
+  const glowXPercent = useMotionTemplate`${glowX}%`;
+  const glowYPercent = useMotionTemplate`${glowY}%`;
+  const glowBg = useMotionTemplate`radial-gradient(circle at ${glowX}% ${glowY}%, rgba(59,130,246,0.35), transparent 60%)`;
+  
   const [isHovering, setIsHovering] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(query.matches);
+    const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    query.addEventListener('change', listener);
+    return () => query.removeEventListener('change', listener);
+  }, []);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    if (prefersReducedMotion || !cardRef.current) return;
+    
+    // Cache rect on first move if not set
+    if (!rectRef.current) {
+        rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
+    
     const xPercent = ((event.clientX - rect.left) / rect.width) * 100;
     const yPercent = ((event.clientY - rect.top) / rect.height) * 100;
-    setGlow({ x: xPercent, y: yPercent });
+    
+    glowX.set(xPercent);
+    glowY.set(yPercent);
 
     const relativeX = xPercent / 100 - 0.5;
     const relativeY = yPercent / 100 - 0.5;
     tiltX.set(relativeX * 12);
     tiltY.set(-relativeY * 12);
+    
     if (!isHovering) setIsHovering(true);
+  };
+  
+  const handleMouseEnter = () => {
+    if (cardRef.current) {
+        rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    setIsHovering(true);
   };
 
   const baseClasses = isDark
@@ -114,6 +147,7 @@ const InteractiveCard: React.FC<{
     <motion.div
       ref={cardRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => {
         tiltX.set(0);
         tiltY.set(0);
@@ -139,7 +173,7 @@ const InteractiveCard: React.FC<{
         <motion.div
           className="absolute inset-0 rounded-2xl blur-xl"
           style={{
-            background: `radial-gradient(circle at ${glow.x}% ${glow.y}%, rgba(59,130,246,0.35), transparent 60%)`,
+            background: glowBg,
           }}
           animate={{ opacity: 0.9 }}
           transition={{ duration: 0.3 }}
@@ -148,7 +182,7 @@ const InteractiveCard: React.FC<{
       </motion.div>
       <motion.span
         className="pointer-events-none absolute h-3 w-3 rounded-full bg-sky-300/80 blur-[1px]"
-        style={{ left: `${glow.x}%`, top: `${glow.y}%`, translateX: '-50%', translateY: '-50%' }}
+        style={{ left: glowXPercent, top: glowYPercent, translateX: '-50%', translateY: '-50%' }}
         animate={{ scale: isHovering ? 1 : 0 }}
       />
       <motion.div
@@ -571,18 +605,40 @@ const guidingPrinciples = [
 
 const MissionSection = () => {
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
   const rotateX = useSpring(tiltY, { stiffness: 70, damping: 18 });
   const rotateY = useSpring(tiltX, { stiffness: 70, damping: 18 });
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(query.matches);
+    const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    query.addEventListener('change', listener);
+    return () => query.removeEventListener('change', listener);
+  }, []);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    if (prefersReducedMotion || !cardRef.current) return;
+    
+    if (!rectRef.current) {
+        rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
+    
     const relX = (event.clientX - rect.left) / rect.width - 0.5;
     const relY = (event.clientY - rect.top) / rect.height - 0.5;
     tiltX.set(relX * 15);
     tiltY.set(-relY * 15);
+  };
+  
+  const handleMouseEnter = () => {
+    if (cardRef.current) {
+        rectRef.current = cardRef.current.getBoundingClientRect();
+    }
   };
 
   const resetTilt = () => {
@@ -610,6 +666,7 @@ const MissionSection = () => {
         <motion.div
           ref={cardRef}
           onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
           onMouseLeave={resetTilt}
           style={{ rotateX, rotateY, transformPerspective: 1600 }}
           variants={missionVariants}
@@ -896,23 +953,51 @@ const workflow = [
 
 const WorkflowStepCard: React.FC<{ step: typeof workflow[number]; index: number }> = ({ step, index }) => {
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
   const rotateX = useSpring(tiltY, { stiffness: 150, damping: 25 });
   const rotateY = useSpring(tiltX, { stiffness: 150, damping: 25 });
-  const [glow, setGlow] = useState({ x: 50, y: 50 });
+  
+  const glowX = useMotionValue(50);
+  const glowY = useMotionValue(50);
+  const glowBg = useMotionTemplate`radial-gradient(circle at ${glowX}% ${glowY}%, rgba(99, 102, 241, 0.4), transparent 70%)`;
+  
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(query.matches);
+    const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    query.addEventListener('change', listener);
+    return () => query.removeEventListener('change', listener);
+  }, []);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    if (prefersReducedMotion || !cardRef.current) return;
+    
+    if (!rectRef.current) {
+        rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
+    
     const xPercent = ((event.clientX - rect.left) / rect.width) * 100;
     const yPercent = ((event.clientY - rect.top) / rect.height) * 100;
-    setGlow({ x: xPercent, y: yPercent });
+    
+    glowX.set(xPercent);
+    glowY.set(yPercent);
 
     const relativeX = xPercent / 100 - 0.5;
     const relativeY = yPercent / 100 - 0.5;
     tiltX.set(relativeX * 10);
     tiltY.set(-relativeY * 10);
+  };
+  
+  const handleMouseEnter = () => {
+    if (cardRef.current) {
+        rectRef.current = cardRef.current.getBoundingClientRect();
+    }
   };
 
   const handleMouseLeave = () => {
@@ -932,6 +1017,7 @@ const WorkflowStepCard: React.FC<{ step: typeof workflow[number]; index: number 
     <motion.div
       ref={cardRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
@@ -944,7 +1030,7 @@ const WorkflowStepCard: React.FC<{ step: typeof workflow[number]; index: number 
       <motion.div
         className="pointer-events-none absolute -inset-1 rounded-3xl opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100"
         style={{
-          background: `radial-gradient(circle at ${glow.x}% ${glow.y}%, rgba(99, 102, 241, 0.4), transparent 70%)`,
+          background: glowBg,
         }}
       />
 
@@ -1012,21 +1098,43 @@ const SectionWrapper: React.FC<{ children: React.ReactNode; className?: string }
 const FounderSection = () => {
   const { aboutPageSettings } = useData();
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const avatarRef = useRef<HTMLDivElement | null>(null);
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
   const rotateX = useSpring(tiltY, { stiffness: 100, damping: 30 });
   const rotateY = useSpring(tiltX, { stiffness: 100, damping: 30 });
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(query.matches);
+    const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    query.addEventListener('change', listener);
+    return () => query.removeEventListener('change', listener);
+  }, []);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    if (prefersReducedMotion || !cardRef.current) return;
+    
+    if (!rectRef.current) {
+        rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
+    
     const xPercent = ((event.clientX - rect.left) / rect.width) * 100;
     const yPercent = ((event.clientY - rect.top) / rect.height) * 100;
     const relativeX = xPercent / 100 - 0.5;
     const relativeY = yPercent / 100 - 0.5;
     tiltX.set(relativeX * 8);
     tiltY.set(-relativeY * 8);
+  };
+  
+  const handleMouseEnter = () => {
+    if (cardRef.current) {
+        rectRef.current = cardRef.current.getBoundingClientRect();
+    }
   };
 
   const handleMouseLeave = () => {
@@ -1112,6 +1220,7 @@ const FounderSection = () => {
         <motion.div
           ref={cardRef}
           onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           style={{ rotateX, rotateY, transformPerspective: 1200 }}
           initial={{ opacity: 0, y: 50, scale: 0.95 }}

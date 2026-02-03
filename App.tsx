@@ -126,11 +126,22 @@ const AppRoutes: React.FC<{ darkMode: boolean; toggleDarkMode: () => void }> = (
 
 const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
     // Check system preference
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setDarkMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const handler = () => setReduceMotion(media.matches);
+      handler();
+      media.addEventListener('change', handler);
+      return () => media.removeEventListener('change', handler);
     }
   }, []);
 
@@ -154,15 +165,17 @@ const App: React.FC = () => {
           - Works across all routes
           - Adjusts for Light/Dark mode via CSS classes in index.html
         */}
-        <div className="animated-bg">
-          <div className="bg-orb orb-1"></div>
-          <div className="bg-orb orb-2"></div>
-          <div className="bg-orb orb-3"></div>
-          <div className="noise-overlay"></div>
-        </div>
+        {!reduceMotion && (
+          <div className="animated-bg">
+            <div className="bg-orb orb-1"></div>
+            <div className="bg-orb orb-2"></div>
+            <div className="bg-orb orb-3"></div>
+            <div className="noise-overlay"></div>
+          </div>
+        )}
         
         {/* Custom Mouse Cursor */}
-        <CustomCursor />
+        {!reduceMotion && <CustomCursor />}
         
         <div className="min-h-screen text-gray-900 dark:text-white font-sans transition-colors duration-300 relative">
           <AppRoutes darkMode={darkMode} toggleDarkMode={toggleDarkMode} />

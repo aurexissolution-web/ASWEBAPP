@@ -13,19 +13,28 @@ const CustomCursor: React.FC = () => {
   const mouseY = useMotionValue(0);
 
   // Smooth spring physics for the cursor movement
-  const springConfig = { damping: 25, stiffness: 700 };
+  const springConfig = { damping: 32, stiffness: 350 };
   const cursorX = useSpring(mouseX, springConfig);
   const cursorY = useSpring(mouseY, springConfig);
 
   const rafRef = useRef<number>();
+  const reduceMotionRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const query = window.matchMedia('(pointer: fine)');
-    const updateState = () => setIsCursorEnabled(query.matches);
+    const pointerFine = window.matchMedia('(pointer: fine)');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateState = () => {
+      reduceMotionRef.current = reduceMotion.matches;
+      setIsCursorEnabled(pointerFine.matches && !reduceMotion.matches);
+    };
     updateState();
-    query.addEventListener('change', updateState);
-    return () => query.removeEventListener('change', updateState);
+    pointerFine.addEventListener('change', updateState);
+    reduceMotion.addEventListener('change', updateState);
+    return () => {
+      pointerFine.removeEventListener('change', updateState);
+      reduceMotion.removeEventListener('change', updateState);
+    };
   }, []);
 
   useEffect(() => {
@@ -101,19 +110,18 @@ const CustomCursor: React.FC = () => {
       }}
     >
       <motion.div
-        className="rounded-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+        className="rounded-full bg-blue-500"
         animate={{
           width: isHovering ? 40 : 20,
           height: isHovering ? 40 : 20,
           opacity: isVisible ? 1 : 0,
           scale: isClicking ? 0.8 : 1,
-          backgroundColor: isHovering ? 'rgba(59, 130, 246, 0.4)' : '#3B82F6', // Transparent blue on hover
-          border: isHovering ? '2px solid #3B82F6' : '0px solid transparent'
+          backgroundColor: isHovering ? 'rgba(59, 130, 246, 0.35)' : '#3B82F6'
         }}
         transition={{
           type: "spring",
-          stiffness: 400,
-          damping: 28
+          stiffness: 300,
+          damping: 30
         }}
       />
       {/* Center dot for precision when hovering */}
