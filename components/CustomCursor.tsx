@@ -19,6 +19,7 @@ const CustomCursor: React.FC = () => {
 
   const rafRef = useRef<number>();
   const reduceMotionRef = useRef<boolean>(false);
+  const isVisibleRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -60,15 +61,13 @@ const CustomCursor: React.FC = () => {
     if (!isCursorEnabled) return;
 
     const moveCursor = (e: MouseEvent) => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
+      mouseX.set(e.clientX - 10);
+      mouseY.set(e.clientY - 10);
+      
+      if (!isVisibleRef.current) {
+        isVisibleRef.current = true;
+        setIsVisible(true);
       }
-      const { clientX, clientY } = e;
-      rafRef.current = requestAnimationFrame(() => {
-        mouseX.set(clientX - 10);
-        mouseY.set(clientY - 10);
-        if (!isVisible) setIsVisible(true);
-      });
     };
 
     const handleMouseDown = () => setIsClicking(true);
@@ -90,11 +89,8 @@ const CustomCursor: React.FC = () => {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('pointerover', handlePointerOver);
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
     };
-  }, [mouseX, mouseY, isCursorEnabled, isVisible]);
+  }, [isCursorEnabled, mouseX, mouseY]);
 
   if (!isCursorEnabled) {
     return null;

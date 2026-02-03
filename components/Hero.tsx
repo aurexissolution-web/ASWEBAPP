@@ -238,15 +238,6 @@ const Hero: React.FC = () => {
         };
     }, [heroScrollProgress]);
 
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        const node = containerRef.current;
-        if (!node) return;
-        if (window.getComputedStyle(node).position === 'static') {
-            node.style.position = 'relative';
-        }
-    }, []);
-
     const handleStackMouseMove = (e: React.MouseEvent) => {
         const rect = e.currentTarget.getBoundingClientRect();
         mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
