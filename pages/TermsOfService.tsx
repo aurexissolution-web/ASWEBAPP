@@ -53,7 +53,7 @@ const TermsOfService: React.FC = () => {
         <div className="mt-12 rounded-3xl border border-purple-200 bg-purple-50/70 p-6 text-center dark:border-purple-500/30 dark:bg-purple-500/10">
           <h3 className="text-xl font-semibold text-purple-900 dark:text-purple-100">Need a signed copy?</h3>
           <p className="mt-2 text-sm text-purple-900/80 dark:text-purple-100/70">
-            Email <a href="mailto:admin@aurexissolution.com" className="underline">admin@aurexissolution.com</a> for a PDF or custom agreement.
+            Email <a href="mailto:contact@aurexissolution.com" className="underline">contact@aurexissolution.com</a> for a PDF or custom agreement.
           </p>
         </div>
       </div>

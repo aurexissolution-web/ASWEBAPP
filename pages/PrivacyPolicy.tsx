@@ -19,7 +19,7 @@ const sections = [
   {
     title: 'Your Rights',
     description:
-      'You may request access, updates, or deletion of your personal information at any time. Simply reach out to admin@aurexissolution.com and we will respond within a reasonable timeframe.'
+      'You may request access, updates, or deletion of your personal information at any time. Simply reach out to contact@aurexissolution.com and we will respond within a reasonable timeframe.'
   }
 ];
 
@@ -54,7 +54,7 @@ const PrivacyPolicy: React.FC = () => {
         <div className="mt-12 rounded-3xl border border-blue-200 bg-blue-50/70 p-6 text-center dark:border-blue-500/30 dark:bg-blue-500/10">
           <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-100">Have a privacy question?</h3>
           <p className="mt-2 text-sm text-blue-900/80 dark:text-blue-100/70">
-            Contact us anytime at <a href="mailto:admin@aurexissolution.com" className="underline">admin@aurexissolution.com</a>.
+            Contact us anytime at <a href="mailto:contact@aurexissolution.com" className="underline">contact@aurexissolution.com</a>.
           </p>
         </div>
       </div>

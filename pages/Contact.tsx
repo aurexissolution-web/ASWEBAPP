@@ -13,7 +13,7 @@ import {
   Send
 } from 'lucide-react';
 
-const CONTACT_EMAIL = 'admin@aurexissolution.com';
+const CONTACT_EMAIL = 'contact@aurexissolution.com';
 const CONTACT_PHONE = '+60 16-407 1129';
 const CONTACT_ADDRESS = 'Sungai Petani, Kedah, Malaysia';
 const CALENDLY_URL = 'https://calendly.com/admin-aurexissolution/30min';
