@@ -72,7 +72,7 @@ const WebTransparentPricing: React.FC = () => {
       <div className="absolute inset-0 bg-[#020613]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.25),transparent_55%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_60%,rgba(14,165,233,0.2),transparent_55%)]" />
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-15 mix-blend-overlay" />
+      <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-15 mix-blend-overlay" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <motion.div

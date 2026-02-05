@@ -107,7 +107,7 @@ const DataHeroWidget: React.FC = () => {
                 <div className="absolute -left-16 bottom-0 w-52 h-52 bg-indigo-500/20 blur-[130px] dark:hidden" />
                 <div className="hidden dark:block absolute inset-0">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(59,130,246,0.18),transparent_55%),radial-gradient(circle_at_85%_80%,rgba(14,165,233,0.15),transparent_55%),radial-gradient(circle_at_80%_10%,rgba(236,72,153,0.15),transparent_70%)] opacity-80" />
-                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-15" />
+                  <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-15" />
                   <div className="absolute inset-x-6 top-0 h-40 bg-gradient-to-b from-cyan-500/25 via-transparent to-transparent blur-2xl" />
                   <div className="absolute inset-x-12 bottom-0 h-48 bg-gradient-to-t from-indigo-500/20 via-transparent to-transparent blur-3xl" />
                 </div>

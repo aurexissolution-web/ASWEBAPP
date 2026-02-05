@@ -105,10 +105,10 @@ const PerformanceHero: React.FC = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),transparent_55%),radial-gradient(circle_at_bottom,_rgba(79,70,229,0.08),transparent_65%)] opacity-70 dark:hidden" />
         <div className="hidden dark:block absolute inset-0">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.15),transparent_55%),radial-gradient(circle_at_bottom,_rgba(14,116,144,0.2),transparent_60%)] opacity-90" />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
+          <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20 pointer-events-none" />
         </div>
       </div>
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none dark:hidden" />
+      <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-10 pointer-events-none dark:hidden" />
 
       <motion.div
         ref={cardRef}

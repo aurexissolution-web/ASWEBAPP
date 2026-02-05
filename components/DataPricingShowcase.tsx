@@ -72,7 +72,7 @@ const DataPricingShowcase: React.FC = () => {
       <div className="absolute inset-0 bg-[#030512]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),transparent_55%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(79,70,229,0.18),transparent_55%)]" />
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-15 mix-blend-screen" />
+      <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-15 mix-blend-screen" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <motion.div

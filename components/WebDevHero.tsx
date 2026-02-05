@@ -218,7 +218,7 @@ const WebDevHero: React.FC = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.18),transparent_55%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_30%,rgba(147,51,234,0.2),transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(120deg,rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '180px 180px' }} />
-        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'url("/noise.svg")' }} />
       </div>
 
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-16 px-4 py-28 sm:px-6 lg:flex-row lg:items-center lg:gap-12 lg:py-32 xl:px-12">

@@ -106,7 +106,7 @@ const AppDevPerf: React.FC = () => {
       }} />
 
       {/* Subtle grain */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.08] mix-blend-overlay dark:opacity-[0.15]" />
+      <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.08] mix-blend-overlay dark:opacity-[0.15]" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="bg-white/95 border border-slate-200 rounded-[32px] p-10 backdrop-blur-3xl shadow-[0_35px_90px_rgba(15,23,42,0.12)] dark:bg-gradient-to-br dark:from-[#050817]/90 dark:via-[#070b1b]/80 dark:to-[#060918]/70 dark:border-white/10 dark:shadow-[0_35px_90px_rgba(2,6,23,0.85)]">

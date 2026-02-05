@@ -106,7 +106,7 @@ const AutomationPerf: React.FC = () => {
                 >
                   
                   {/* Subtle Grain Overlay */}
-                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 mix-blend-overlay" />
+                  <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-5 mix-blend-overlay" />
 
                   {/* Chart Header */}
                   <div className="flex justify-between items-center mb-8 relative z-10">

@@ -93,7 +93,7 @@ const DataOpsStrip: React.FC = () => {
           <rect width="100%" height="100%" fill="url(#mesh)" />
         </svg>
         {/* Grain overlay */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.07]" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.07]" />
       </div>
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-6 right-8 text-[10px] tracking-[0.45em] uppercase text-slate-400/70">

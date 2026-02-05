@@ -221,7 +221,7 @@ const ServiceChallengesSection: React.FC<{ data: ServiceChallengesData }> = ({ d
                 />
                 <div className="absolute inset-0">
                   <motion.div
-                    className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-screen"
+                    className="absolute inset-0 bg-[url('/noise.svg')] opacity-10 mix-blend-screen"
                     animate={{ opacity: [0.05, 0.15, 0.05] }}
                     transition={{ duration: 5, repeat: Infinity }}
                   />

@@ -22,7 +22,7 @@ const CloudDashboard: React.FC = () => {
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(16,185,129,0.12),transparent_70%)]" />
-      <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="absolute inset-0 opacity-20 bg-[url('/noise.svg')]" />
 
       <div className="relative z-10 flex flex-col gap-8">
         <div className="relative rounded-[28px] border border-white/10 bg-[#030814]/80 backdrop-blur-2xl p-8 overflow-hidden group">

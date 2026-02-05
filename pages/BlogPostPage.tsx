@@ -75,7 +75,7 @@ const BlogPostPage: React.FC = () => {
       <section className="relative overflow-hidden px-4 pt-24 pb-16 sm:px-6 lg:px-12">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-200/40 via-white to-purple-100 dark:from-[#060914] dark:via-[#05081b] dark:to-[#031016]" />
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url("/noise.svg")' }} />
           {particles.map((particle) => (
             <motion.span
               key={particle.id}

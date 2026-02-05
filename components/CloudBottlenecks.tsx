@@ -85,7 +85,7 @@ const CloudBottlenecks: React.FC = () => {
   return (
     <section className="relative py-24 bg-[#030817] text-white overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-[#040b1c] via-[#030817] to-[#050f26]" />
-      <div className="absolute inset-0 opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="absolute inset-0 opacity-10 bg-[url('/noise.svg')]" />
 
       {/* Animated network */}
       <div className="absolute inset-0 pointer-events-none">

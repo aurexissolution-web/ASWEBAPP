@@ -111,7 +111,7 @@ const TiltCard: React.FC<TiltCardProps> = ({ children, className, isDark = false
                     style={{ background: spotlightBg }}
                 />
                 {/* Noise Texture */}
-                <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none rounded-[23px]" />
+                <div className="absolute inset-0 opacity-[0.03] bg-[url('/noise.svg')] pointer-events-none rounded-[23px]" />
                 
                 {/* Content Container - Preserves 3D for children */}
                 <div className="relative h-full p-8 flex flex-col" style={{ transformStyle: "preserve-3d" }}>
@@ -329,7 +329,7 @@ const InteractiveParticleBackground: React.FC<{ reducedMotion: boolean; active?:
       <div className="absolute inset-0 bg-[linear-gradient(180deg,#E5E9EF_0%,#DEE2E8_100%)] dark:bg-[linear-gradient(180deg,#010204_0%,#000000_100%)]" />
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(50,184,198,0.25),transparent_55%)] dark:bg-[radial-gradient(circle_at_70%_15%,rgba(50,184,198,0.4),transparent_65%)] opacity-30" />
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.08] dark:opacity-[0.12] mix-blend-overlay" />
+      <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.08] dark:opacity-[0.12] mix-blend-overlay" />
     </div>
   );
 };

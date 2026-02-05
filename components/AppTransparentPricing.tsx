@@ -70,7 +70,7 @@ const AppTransparentPricing: React.FC = () => {
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.25),transparent_55%)] opacity-40" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(6,182,212,0.2),transparent_55%)] opacity-40" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay dark:opacity-20" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-10 mix-blend-overlay dark:opacity-20" />
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">

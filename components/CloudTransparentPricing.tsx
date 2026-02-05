@@ -66,7 +66,7 @@ const CloudTransparentPricing: React.FC = () => {
     >
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.2),transparent_55%),radial-gradient(circle_at_80%_20%,rgba(16,185,129,0.15),transparent_60%),radial-gradient(circle_at_50%_90%,rgba(109,40,217,0.2),transparent_65%)] opacity-70 dark:opacity-100" />
-        <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(90deg,rgba(15,23,42,0.08) 1px, transparent 1px), linear-gradient(rgba(15,23,42,0.08) 1px, transparent 1px)', backgroundSize: '140px 140px' }} />
+        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'url("/noise.svg")' }} />
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">

@@ -302,10 +302,10 @@ const DataAnalysisCarousel: React.FC<DataAnalysisCarouselProps> = ({ initialTab 
               backgroundSize: '140px 140px'
             }}
           />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.08]" />
+          <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.08]" />
         </div>
       </div>
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] dark:hidden" />
+      <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.05] dark:hidden" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 space-y-4">

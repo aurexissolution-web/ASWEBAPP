@@ -25,7 +25,7 @@ const Portfolio: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-200/40 via-white to-blue-100 dark:from-cyan-500/10 dark:via-slate-900 dark:to-indigo-900" />
           <div
             className="absolute inset-0 opacity-40"
-            style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}
+            style={{ backgroundImage: 'url("/noise.svg")' }}
           />
           {particles.map(particle => (
             <motion.span
