@@ -238,10 +238,33 @@ const Hero: React.FC = () => {
         };
     }, [heroScrollProgress]);
 
+    const stackRef = useRef<HTMLDivElement>(null);
+    const rectRef = useRef<DOMRect | null>(null);
+
     const handleStackMouseMove = (e: React.MouseEvent) => {
-        const rect = e.currentTarget.getBoundingClientRect();
+        if (!rectRef.current && e.currentTarget) {
+            rectRef.current = e.currentTarget.getBoundingClientRect();
+        }
+        const rect = rectRef.current;
+        if (!rect) return;
+        
+        // Use requestAnimationFrame to throttle updates if needed, 
+        // but MotionValues are already optimized.
+        // The key is avoiding getBoundingClientRect on every frame.
         mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
         mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+    };
+
+    const handleStackMouseEnter = (e: React.MouseEvent) => {
+        setIsHoveringStack(true);
+        rectRef.current = e.currentTarget.getBoundingClientRect();
+    };
+
+    const handleStackMouseLeave = () => {
+        mouseX.set(0); 
+        mouseY.set(0); 
+        setIsHoveringStack(false);
+        rectRef.current = null; // Reset rect to ensure freshness on next enter
     };
 
     // Clean Volumetric Layer
@@ -323,8 +346,8 @@ const Hero: React.FC = () => {
                 <div 
                     className="hidden lg:flex lg:col-span-5 items-center justify-center h-[600px] perspective-[1000px] relative z-30"
                     onMouseMove={handleStackMouseMove}
-                    onMouseLeave={() => { mouseX.set(0); mouseY.set(0); setIsHoveringStack(false); }}
-                    onMouseEnter={() => setIsHoveringStack(true)}
+                    onMouseLeave={handleStackMouseLeave}
+                    onMouseEnter={handleStackMouseEnter}
                 >
                     {/* Expanded Hit Area for proximity detection */}
                     <div className="absolute inset-0 z-0 scale-125"></div> 

@@ -33,6 +33,7 @@ const releaseStages = [
 
 const AppMetricsCarousel: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -40,18 +41,29 @@ const AppMetricsCarousel: React.FC = () => {
   const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
-    const x = (event.clientX - left) / width - 0.5;
-    const y = (event.clientY - top) / height - 0.5;
+    if (!rectRef.current && containerRef.current) {
+      rectRef.current = containerRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
+    if (!rect) return;
+
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
     mouseX.set(x);
     mouseY.set(y);
+  };
+
+  const handleMouseEnter = () => {
+    if (containerRef.current) {
+      rectRef.current = containerRef.current.getBoundingClientRect();
+    }
   };
 
   return (
     <section
       ref={containerRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       className="relative flex flex-col items-center gap-10 py-12 px-4 bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-[40px] border border-slate-200 shadow-[0_35px_90px_rgba(15,23,42,0.08)] dark:bg-[#060b18] dark:bg-none dark:border-white/10 dark:shadow-none"
     >
       <div className="relative flex items-center justify-center w-full">

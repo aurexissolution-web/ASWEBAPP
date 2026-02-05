@@ -36,14 +36,26 @@ type MagneticButtonProps = {
   onClick?: () => void;
 };
 
-const MagneticButton: React.FC<MagneticButtonProps> = ({ children, variant = 'primary', onClick }) => {
+const MagneticButton = React.memo<MagneticButtonProps>(({ children, variant = 'primary', onClick }) => {
   const ref = useRef<HTMLButtonElement>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
+  const handleMouseEnter = () => {
+    if (ref.current) {
+        rectRef.current = ref.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = ref.current?.getBoundingClientRect();
+    // Fallback if rect isn't cached yet
+    if (!rectRef.current && ref.current) {
+        rectRef.current = ref.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
+    
     const offsetX = event.clientX - (rect.left + rect.width / 2);
     const offsetY = event.clientY - (rect.top + rect.height / 2);
     x.set(offsetX * 0.15);
@@ -53,6 +65,7 @@ const MagneticButton: React.FC<MagneticButtonProps> = ({ children, variant = 'pr
   const handleMouseLeave = () => {
     x.set(0);
     y.set(0);
+    rectRef.current = null;
   };
 
   const baseClasses =
@@ -64,6 +77,7 @@ const MagneticButton: React.FC<MagneticButtonProps> = ({ children, variant = 'pr
     <motion.button
       ref={ref}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
       style={{ x, y }}
@@ -78,7 +92,7 @@ const MagneticButton: React.FC<MagneticButtonProps> = ({ children, variant = 'pr
       )}
     </motion.button>
   );
-};
+});
 
 const OrbitingMetric = ({
   value,

@@ -129,6 +129,7 @@ const ChartBar = ({ label, height, color, val, delay }: { label: string, height:
 
 const HoloPerf: React.FC = () => {
   const ref = useRef<HTMLDivElement>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   
   // 3D Tilt Logic
   const x = useMotionValue(0);
@@ -141,8 +142,12 @@ const HoloPerf: React.FC = () => {
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-15deg", "15deg"]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
+    if (!rectRef.current && ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
+    if (!rect) return;
+
     const width = rect.width;
     const height = rect.height;
     const mouseX = e.clientX - rect.left;
@@ -153,9 +158,16 @@ const HoloPerf: React.FC = () => {
     y.set(yPct);
   };
 
+  const handleMouseEnter = () => {
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseLeave = () => {
     x.set(0);
     y.set(0);
+    rectRef.current = null;
   };
 
   return (
@@ -175,6 +187,7 @@ const HoloPerf: React.FC = () => {
       <motion.div
         ref={ref}
         onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         initial={{ scale: 0.8, opacity: 0 }}

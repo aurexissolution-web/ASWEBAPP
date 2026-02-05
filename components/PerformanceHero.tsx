@@ -65,6 +65,7 @@ const ChartBar = ({
 
 const PerformanceHero: React.FC = () => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const motionX = useMotionValue(0);
   const motionY = useMotionValue(0);
 
@@ -75,12 +76,22 @@ const PerformanceHero: React.FC = () => {
   const rotateY = useTransform(xSpring, [-0.5, 0.5], ['-15deg', '15deg']);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
+    if (!rect) return;
+
     const xPos = (event.clientX - rect.left) / rect.width - 0.5;
     const yPos = (event.clientY - rect.top) / rect.height - 0.5;
     motionX.set(xPos);
     motionY.set(yPos);
+  };
+
+  const handleMouseEnter = () => {
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
   };
 
   const handleMouseLeave = () => {
@@ -103,6 +114,7 @@ const PerformanceHero: React.FC = () => {
         ref={cardRef}
         style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
         onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         initial={{ opacity: 0, scale: 0.94 }}
         whileInView={{ opacity: 1, scale: 1 }}

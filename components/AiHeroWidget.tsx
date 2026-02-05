@@ -213,17 +213,28 @@ interface AiHeroWidgetProps {
 }
 
 const AiHeroWidget: React.FC<AiHeroWidgetProps> = ({ stats }) => {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.3 });
   
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const handleMouseMove = (e) => {
-    if (!containerRef.current) return;
-    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
-    mouseX.set((e.clientX - left) / width - 0.5);
-    mouseY.set((e.clientY - top) / height - 0.5);
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!rectRef.current && containerRef.current) {
+      rectRef.current = containerRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
+    if (!rect) return;
+
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseEnter = () => {
+    if (containerRef.current) {
+      rectRef.current = containerRef.current.getBoundingClientRect();
+    }
   };
 
   const springConfig = { damping: 25, stiffness: 150 };
@@ -245,6 +256,7 @@ const AiHeroWidget: React.FC<AiHeroWidgetProps> = ({ stats }) => {
     <div 
       ref={containerRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       className="relative w-full h-[400px] lg:h-[500px] flex items-center justify-center perspective-1000 overflow-visible"
     >
       <motion.div

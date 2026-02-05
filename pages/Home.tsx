@@ -30,6 +30,8 @@ interface TiltCardProps {
 }
 
 const TiltCard: React.FC<TiltCardProps> = ({ children, className, isDark = false, variant = 'default' }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const rectRef = useRef<DOMRect | null>(null);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
 
@@ -41,15 +43,26 @@ const TiltCard: React.FC<TiltCardProps> = ({ children, className, isDark = false
     const rotateX = useTransform(smoothY, [-300, 300], [20, -20]); 
     const rotateY = useTransform(smoothX, [-300, 300], [-20, 20]);
 
-    function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-        const { left, top, width, height } = currentTarget.getBoundingClientRect();
-        const xCenter = clientX - left - width / 2;
-        const yCenter = clientY - top - height / 2;
+    function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+        if (!rectRef.current && containerRef.current) {
+            rectRef.current = containerRef.current.getBoundingClientRect();
+        }
+        const rect = rectRef.current;
+        if (!rect) return;
+
+        const xCenter = e.clientX - rect.left - rect.width / 2;
+        const yCenter = e.clientY - rect.top - rect.height / 2;
         
         // Update Motion Values
         mouseX.set(xCenter);
         mouseY.set(yCenter);
     }
+
+    const handleMouseEnter = () => {
+        if (containerRef.current) {
+            rectRef.current = containerRef.current.getBoundingClientRect();
+        }
+    };
 
     // Dynamic Gradient for the Spotlight
     const spotlightBg = useMotionTemplate`radial-gradient(400px circle at ${useTransform(smoothX, x => x + 200)}px ${useTransform(smoothY, y => y + 250)}px, ${isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)'}, transparent 80%)`;
@@ -58,9 +71,15 @@ const TiltCard: React.FC<TiltCardProps> = ({ children, className, isDark = false
     return (
         <div className={`${className} perspective-1000 group`}>
             <motion.div
+                ref={containerRef}
                 style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
                 onMouseMove={handleMouseMove}
-                onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={() => { 
+                    mouseX.set(0); 
+                    mouseY.set(0); 
+                    rectRef.current = null;
+                }}
                 whileHover={{ y: -8, scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 className="relative h-full"
