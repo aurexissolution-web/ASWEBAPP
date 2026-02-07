@@ -1,13 +1,11 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
 import {
   getFirestore,
   initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
   type Firestore
 } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
@@ -22,29 +20,34 @@ const firebaseConfig = {
 export const isFirebaseConfigured = !!(import.meta.env.VITE_FIREBASE_API_KEY &&
   import.meta.env.VITE_FIREBASE_API_KEY !== 'demo-api-key');
 
-let app;
-let auth;
+let app: FirebaseApp;
+let auth: Auth;
 let db: Firestore | null;
-let storage;
-
-const shouldEnablePersistence =
-  (import.meta.env.VITE_FIREBASE_ENABLE_PERSISTENCE ?? 'true').toLowerCase() !== 'false';
+let storage: FirebaseStorage;
 
 try {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  if (shouldEnablePersistence) {
-    db = initializeFirestore(app, {
-      experimentalForceLongPolling: false,
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager()
-      })
-    });
+  // Prevent multiple initializations during HMR
+  // We use a unique name 'aurexis-app' to ensure we can control the initialization settings
+  // independently of the default app which might be stuck in a bad state.
+  const appName = 'aurexis-app';
+  const existingApp = getApps().find(app => app.name === appName);
+
+  if (existingApp) {
+    app = existingApp;
+    db = getFirestore(app);
+    console.log('[Firebase] Reusing existing app instance');
   } else {
+    app = initializeApp(firebaseConfig, appName);
+    // Force long-polling is the most stable setting for this environment.
+    // We explicitly re-enable it after testing showed auto-detect was also unstable.
     db = initializeFirestore(app, {
-      experimentalForceLongPolling: false
+      experimentalForceLongPolling: true,
+      // experimentalAutoDetectLongPolling: false, // Ensure we don't switch modes
     });
+    console.log('[Firebase] Initialized new app with LongPolling');
   }
+
+  auth = getAuth(app);
   storage = getStorage(app);
   
   if (!isFirebaseConfigured) {
